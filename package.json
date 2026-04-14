@@ -7,8 +7,8 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@cfasim-ui/theme": "^0.3.2",
-    "cfasim-ui": "^0.3.2",
+    "@cfasim-ui/theme": "^0.3.3",
+    "cfasim-ui": "^0.3.3",
     "smol-toml": "^1.6.1",
     "vue": "^3.5.30"
   },
