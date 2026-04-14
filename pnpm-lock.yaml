@@ -14,6 +14,9 @@ importers:
       cfasim-ui:
         specifier: ^0.3.2
         version: 0.3.2(vue@3.5.32(typescript@5.9.3))
+      smol-toml:
+        specifier: ^1.6.1
+        version: 1.6.1
       vue:
         specifier: ^3.5.30
         version: 3.5.32(typescript@5.9.3)
@@ -484,6 +487,10 @@ packages:
     resolution: {integrity: sha512-Ff31guA5zT6WjnGp0SXw76X6hzGRk/OQq2hE+1lcDe+lJdHSgnSX6nK3erbONHyCbpSj9a9E+uX/OvytZoWp2g==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
+
+  smol-toml@1.6.1:
+    resolution: {integrity: sha512-dWUG8F5sIIARXih1DTaQAX4SsiTXhInKf1buxdY9DIg4ZYPZK5nGM1VRIYmEbDbsHt7USo99xSLFu5Q1IqTmsg==}
+    engines: {node: '>= 18'}
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -1032,6 +1039,8 @@ snapshots:
       '@rolldown/binding-wasm32-wasi': 1.0.0-rc.15
       '@rolldown/binding-win32-arm64-msvc': 1.0.0-rc.15
       '@rolldown/binding-win32-x64-msvc': 1.0.0-rc.15
+
+  smol-toml@1.6.1: {}
 
   source-map-js@1.2.1: {}
 

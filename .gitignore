@@ -2,5 +2,6 @@ node_modules/
 public/wasm/
 .references/
 target/
+dist/
 CLAUDE.md
 CHANGELOG.md
