@@ -32,5 +32,6 @@ const percent = computed(() => cfg.value.type === "percent");
     :slider="cfg.slider"
     :percent="percent"
     :number-type="numberType"
+    live
   />
 </template>

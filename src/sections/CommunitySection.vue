@@ -19,7 +19,7 @@ const durationMax = computed(() => Math.max(1, days.value - community.value.star
     <ParamField
       path="mitigations.community.start"
       v-model="community.start"
-      :max="days.value"
+      :max="days"
     />
     <ParamField
       path="mitigations.community.duration"

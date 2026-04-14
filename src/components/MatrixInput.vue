@@ -62,6 +62,7 @@ function update(row: number, col: number, value: number) {
               :step="cfg.step"
               hide-label
               number-type="float"
+              live
             />
             <span v-else class="matrix-input__mirror">{{ get(r, c).toFixed(2) }}</span>
           </td>

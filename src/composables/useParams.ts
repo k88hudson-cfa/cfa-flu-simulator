@@ -99,12 +99,15 @@ export interface ModelOutputExport {
   output_types: OutputTypeLabel[];
 }
 
+export interface WasmModel {
+  run: (days: number) => ModelOutputExport;
+  free: () => void;
+}
+
 export interface WasmModule {
   default: () => Promise<unknown>;
   get_default_parameters: () => Parameters;
-  SEIRModelUnified: new (params: Parameters) => {
-    run: (days: number) => ModelOutputExport;
-  };
+  SEIRModelUnified: new (params: Parameters) => WasmModel;
 }
 
 export { loadWasm };

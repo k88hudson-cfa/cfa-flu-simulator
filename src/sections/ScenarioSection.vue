@@ -8,7 +8,7 @@ const { params, days } = useParams();
 
 <template>
   <div class="section">
-    <ParamField path="scenario.days" v-model="days.value" />
+    <ParamField path="scenario.days" v-model="days" />
     <ParamField path="scenario.population" v-model="params.population" />
     <ParamField path="scenario.initial_infections" v-model="params.initial_infections" />
     <ParamField path="scenario.fraction_initial_immune" v-model="params.fraction_initial_immune" />

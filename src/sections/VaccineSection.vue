@@ -33,7 +33,7 @@ const dosesString = computed({
       v-model="dosesString"
       :options="dosesOptions"
     />
-    <ParamField path="mitigations.vaccine.start" v-model="vax.start" :max="days.value" />
+    <ParamField path="mitigations.vaccine.start" v-model="vax.start" :max="days" />
     <ParamField
       path="mitigations.vaccine.doses_available"
       v-model="vax.doses_available"
@@ -47,7 +47,7 @@ const dosesString = computed({
       <ParamField
         path="mitigations.vaccine.dose2_delay"
         v-model="vax.dose2_delay"
-        :max="days.value"
+        :max="days"
       />
       <ParamField path="mitigations.vaccine.p_get_2_doses" v-model="vax.p_get_2_doses" />
     </template>

@@ -66,6 +66,7 @@ const percent = computed(() => cfg.value.type === "percent");
         :percent="percent"
         :number-type="numberType"
         hide-label
+        live
       />
     </div>
     <div v-else class="group-editor__grid">
@@ -83,6 +84,7 @@ const percent = computed(() => cfg.value.type === "percent");
           :step="cfg.step"
           :percent="percent"
           :number-type="numberType"
+          live
         />
       </div>
     </div>
