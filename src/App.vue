@@ -6,6 +6,7 @@ import VaccineSection from "./sections/VaccineSection.vue";
 import AntiviralsSection from "./sections/AntiviralsSection.vue";
 import CommunitySection from "./sections/CommunitySection.vue";
 import TTIQSection from "./sections/TTIQSection.vue";
+import ResultsView from "./views/ResultsView.vue";
 
 const { ready } = provideParams();
 </script>
@@ -24,10 +25,7 @@ const { ready } = provideParams();
       </template>
       <p v-else class="loading">Loading model…</p>
     </template>
-    <h1>cfa-flu-simulator</h1>
-    <p class="placeholder">
-      Parameter editor wired up. Simulation chart coming next.
-    </p>
+    <ResultsView v-if="ready" />
   </SidebarLayout>
 </template>
 
@@ -48,8 +46,5 @@ const { ready } = provideParams();
 .loading {
   padding: 1rem;
   opacity: 0.7;
-}
-.placeholder {
-  opacity: 0.6;
 }
 </style>

@@ -80,11 +80,34 @@ export interface Parameters {
   p_test_forward: number;
 }
 
-interface WasmModule {
+export type MitigationLabel = "Unmitigated" | "Mitigated";
+export type OutputTypeLabel =
+  | "InfectionIncidence"
+  | "SymptomaticIncidence"
+  | "HospitalIncidence"
+  | "DeathIncidence";
+
+export interface OutputItemGrouped {
+  time: number;
+  grouped_values: number[];
+}
+
+export interface ModelOutputExport {
+  output: Record<MitigationLabel, Record<OutputTypeLabel, OutputItemGrouped[]>>;
+  p_detect: Record<MitigationLabel, { time: number; value: number }[]>;
+  mitigation_types: MitigationLabel[];
+  output_types: OutputTypeLabel[];
+}
+
+export interface WasmModule {
   default: () => Promise<unknown>;
   get_default_parameters: () => Parameters;
-  SEIRModelUnified: new (params: Parameters) => { run: (days: number) => unknown };
+  SEIRModelUnified: new (params: Parameters) => {
+    run: (days: number) => ModelOutputExport;
+  };
 }
+
+export { loadWasm };
 
 let wasmPromise: Promise<WasmModule> | null = null;
 
