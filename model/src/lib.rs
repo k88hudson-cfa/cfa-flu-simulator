@@ -1,4 +1,16 @@
-use cfasim_model::{model_outputs, ModelOutput};
+#![allow(incomplete_features)]
+#![feature(generic_const_exprs)]
+#![feature(macro_metavar_expr)]
+
+pub mod mitigations;
+mod model;
+mod model_unified;
+pub mod parameters;
+mod utils;
+
+// Temporary legacy stubs — consumed by src/App.vue via the vite wasm-pack plugin.
+// Removed in the final step of the port once SEIRModelUnified lands.
+use cfasim_model::{ModelOutput, model_outputs};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
