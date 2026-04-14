@@ -25,7 +25,7 @@ test_sensitivity = 0.90
 p_test_forward = 0.90
 
 [mitigations.vaccine]
-enabled = false
+enabled = true
 editable = true
 doses = 1
 start = 50.0

@@ -159,7 +159,7 @@ export function createParamsStore(): ParamsStore {
     death_delay: 10,
     mitigations: {
       vaccine: {
-        enabled: false, editable: true, doses: 1, start: 50, dose2_delay: 30,
+        enabled: true, editable: true, doses: 1, start: 50, dose2_delay: 30,
         p_get_2_doses: 0.9, administration_rate: 1_500_000,
         doses_available: 40_000_000, ramp_up: 14,
         ve_s: 0.4, ve_i: 0, ve_p: 0.5, ve_2s: 0.6, ve_2i: 0, ve_2p: 0.75,

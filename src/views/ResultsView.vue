@@ -2,6 +2,8 @@
 import { computed } from "vue";
 import { LineChart, type Series, type AreaSection } from "cfasim-ui/charts";
 import ChartTooltipContent from "../components/ChartTooltipContent.vue";
+import OnThisPage from "../components/OnThisPage.vue";
+import SummaryView from "./SummaryView.vue";
 import { useParams, type ModelOutputExport, type OutputItemGrouped, type OutputTypeLabel } from "../composables/useParams";
 import { useModelRun } from "../composables/useModelRun";
 
@@ -140,7 +142,7 @@ function buildAreaSections(
         seriesIndex,
         startIndex: atDay(startDay),
         endIndex: atDay(endDay),
-        color: "#8b5cf6",
+        color: "var(--accent)",
         opacity: 0.18,
         label: `Day ${Math.round(startDay)}–${Math.round(endDay)}`,
         description: `${formatDoses(vax.doses_available)} vaccines administered`,
@@ -211,21 +213,32 @@ const headerTitle = computed(() =>
     ? "Mitigated vs. Unmitigated Scenario"
     : "Unmitigated Scenario",
 );
+
+const onThisPageGroups = computed(() => [
+  {
+    label: "Model results",
+    items: [
+      { id: "charts", label: "Charts" },
+      { id: "summary", label: "Summary" },
+    ],
+  },
+]);
 </script>
 
 <template>
-  <div class="results">
-    <header class="results__header">
-      <h1>{{ headerTitle }}</h1>
-      <p class="results__subtitle">{{ subtitle }}</p>
-    </header>
+  <div class="results-layout">
+    <div class="results">
+      <header class="results__header">
+        <h1>{{ headerTitle }}</h1>
+        <p class="results__subtitle">{{ subtitle }}</p>
+      </header>
 
-    <p v-if="error" class="results__error">Error: {{ error }}</p>
-    <p v-else-if="!results && running" class="results__loading">Running model…</p>
+      <p v-if="error" class="results__error">Error: {{ error }}</p>
+      <p v-else-if="!results && running" class="results__loading">Running model…</p>
 
-    <template v-if="overallChart">
-      <section class="results__section">
-        <h2>Overall Infection Incidence</h2>
+      <template v-if="overallChart">
+        <section class="results__section" data-otp-id="charts" id="charts">
+          <h2>Overall Infection Incidence</h2>
         <LineChart
           :series="overallChart.series"
           :x-labels="overallChart.xLabels"
@@ -349,16 +362,44 @@ const headerTitle = computed(() =>
           </div>
         </div>
       </section>
+
+      <section class="results__section" data-otp-id="summary" id="summary">
+        <h1>Summary</h1>
+        <SummaryView />
+      </section>
     </template>
+    </div>
+    <aside class="results-layout__rail">
+      <OnThisPage :groups="onThisPageGroups" />
+    </aside>
   </div>
 </template>
 
 <style scoped>
+.results-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.5rem;
+  align-items: start;
+}
+.results-layout__rail {
+  padding: 1rem 1.5rem 1rem 0;
+  align-self: stretch;
+}
+@media (max-width: 900px) {
+  .results-layout {
+    grid-template-columns: 1fr;
+  }
+  .results-layout__rail {
+    display: none;
+  }
+}
 .results {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   padding: 1rem 1.5rem;
+  min-width: 0;
 }
 .results h1 { font-size: 1.5rem; margin: 0 0 0.5rem; }
 .results h2 { font-size: 1rem; margin: 0 0 0.5rem; }

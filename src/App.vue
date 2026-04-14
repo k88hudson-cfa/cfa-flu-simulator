@@ -29,6 +29,15 @@ const { ready } = provideParams();
   </SidebarLayout>
 </template>
 
+<style>
+:root {
+  --accent: rgb(0, 87, 183);
+}
+[data-theme="cdc"] {
+  --font-weight-heading: 600;
+}
+</style>
+
 <style scoped>
 .group-header {
   font-size: 0.75rem;
@@ -46,5 +55,8 @@ const { ready } = provideParams();
 .loading {
   padding: 1rem;
   opacity: 0.7;
+}
+:deep(.MainContent) {
+  max-width: 1600px;
 }
 </style>
