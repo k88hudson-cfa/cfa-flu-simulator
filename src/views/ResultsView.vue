@@ -4,6 +4,7 @@ import { LineChart, type Series, type AreaSection } from "cfasim-ui/charts";
 import ChartTooltipContent from "../components/ChartTooltipContent.vue";
 import OnThisPage from "../components/OnThisPage.vue";
 import SummaryView from "./SummaryView.vue";
+import DetectionSection from "../sections/DetectionSection.vue";
 import { useParams, type ModelOutputExport, type OutputItemGrouped, type OutputTypeLabel } from "../composables/useParams";
 import { useModelRun } from "../composables/useModelRun";
 
@@ -217,6 +218,7 @@ const onThisPageGroups = computed(() => [
     items: [
       { id: "charts", label: "Charts" },
       { id: "summary", label: "Summary" },
+      { id: "detection", label: "Detection" },
     ],
   },
 ]);
@@ -241,6 +243,7 @@ const onThisPageGroups = computed(() => [
           :x-labels="overallChart.xLabels"
           :area-sections="overallChart.areaSections"
           :y-label="`Incidence${overallChart.scale.unit ? ` (${overallChart.scale.unit})` : ''}`"
+          filename="overall-infection-incidence"
           :height="320"
           :y-min="0"
           :x-min="0"
@@ -266,6 +269,7 @@ const onThisPageGroups = computed(() => [
             :x-labels="deathChart.xLabels"
             :area-sections="deathChart.areaSections"
             :y-label="`Incidence${deathChart.scale.unit ? ` (${deathChart.scale.unit})` : ''}`"
+            filename="death-incidence"
             :height="180"
             :y-min="0"
             :x-min="0"
@@ -288,6 +292,7 @@ const onThisPageGroups = computed(() => [
             :series="hospChart.series"
             :x-labels="hospChart.xLabels"
             :area-sections="hospChart.areaSections"
+            filename="hospital-incidence"
             :height="180"
             :y-min="0"
             :x-min="0"
@@ -310,6 +315,7 @@ const onThisPageGroups = computed(() => [
             :series="symptomaticChart.series"
             :x-labels="symptomaticChart.xLabels"
             :area-sections="symptomaticChart.areaSections"
+            filename="symptomatic-incidence"
             :height="180"
             :y-min="0"
             :x-min="0"
@@ -339,6 +345,7 @@ const onThisPageGroups = computed(() => [
               :x-labels="g.data.xLabels"
               :area-sections="g.data.areaSections"
               :y-label="gi === 0 && g.data.scale.unit ? `(${g.data.scale.unit})` : ''"
+              :filename="`infection-incidence-${g.label.toLowerCase().replace(/\\s+/g, '-')}`"
               :height="200"
               :y-min="0"
               :x-min="0"
@@ -362,6 +369,8 @@ const onThisPageGroups = computed(() => [
         <h1>Summary</h1>
         <SummaryView />
       </section>
+
+      <DetectionSection :results="results" />
     </template>
     </div>
     <aside class="results-layout__rail">
@@ -396,9 +405,9 @@ const onThisPageGroups = computed(() => [
   padding: 1rem 1.5rem;
   min-width: 0;
 }
-.results h1 { font-size: 1.5rem; margin: 0 0 0.5rem; }
-.results h2 { font-size: 1rem; margin: 0 0 0.5rem; }
-.results h3 { font-size: 1rem; margin: 0 0 0.25rem; }
+.results :deep(h1) { font-size: 1.5rem; margin: 0 0 0.5rem; }
+.results :deep(h2) { font-size: 1rem; margin: 0 0 0.5rem; }
+.results :deep(h3) { font-size: 1rem; margin: 0 0 0.25rem; }
 .results__subtitle { margin: 0.25rem 0 0; opacity: 0.65; }
 .results__error { color: #ef4444; }
 .results__loading { opacity: 0.7; }

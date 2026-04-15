@@ -20,7 +20,7 @@ fraction_hospitalized = [0.01, 0.1]
 hospitalization_delay = 7.0
 fraction_dead = [0.0005, 0.005]
 death_delay = 10.0
-p_test_sympto = 0.0
+p_test_sympto = 0.001
 test_sensitivity = 0.90
 p_test_forward = 0.90
 

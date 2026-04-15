@@ -36,6 +36,9 @@ const { ready } = provideParams();
 [data-theme="cdc"] {
   --font-weight-heading: 600;
 }
+.input-label {
+  font-size: var(--font-size-sm);
+}
 </style>
 
 <style scoped>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { Hint, NumberInput, Toggle } from "cfasim-ui/components";
+import { NumberInput, Toggle } from "cfasim-ui/components";
 import { getField } from "../config/uiConfig";
 import { useParams } from "../composables/useParams";
 
@@ -48,15 +48,10 @@ const percent = computed(() => cfg.value.type === "percent");
 
 <template>
   <div class="group-editor">
-    <div class="group-editor__header">
-      <label class="group-editor__label">
-        {{ cfg.label }}
-        <Hint v-if="cfg.tooltip" :text="cfg.tooltip" />
-      </label>
-      <Toggle v-model="allMode" label="All" />
-    </div>
     <div v-if="allMode" class="group-editor__all">
       <NumberInput
+        :label="cfg.label"
+        :hint="cfg.tooltip"
         :model-value="modelValue[0]"
         @update:model-value="update(0, $event)"
         :min="cfg.min"
@@ -65,11 +60,16 @@ const percent = computed(() => cfg.value.type === "percent");
         :slider="cfg.slider"
         :percent="percent"
         :number-type="numberType"
-        hide-label
         live
       />
+      <Toggle v-model="allMode" label="All" class="group-editor__toggle" />
     </div>
-    <div v-else class="group-editor__grid">
+    <template v-else>
+      <div class="group-editor__header">
+        <span class="group-editor__label">{{ cfg.label }}</span>
+        <Toggle v-model="allMode" label="All" />
+      </div>
+      <div class="group-editor__grid">
       <div
         v-for="(value, i) in modelValue"
         :key="i"
@@ -87,7 +87,8 @@ const percent = computed(() => cfg.value.type === "percent");
           live
         />
       </div>
-    </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -110,5 +111,13 @@ const percent = computed(() => cfg.value.type === "percent");
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 0.5rem;
+}
+.group-editor__all {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+.group-editor__all > :first-child {
+  flex: 1;
 }
 </style>
