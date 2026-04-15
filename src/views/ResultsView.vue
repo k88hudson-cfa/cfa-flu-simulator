@@ -213,7 +213,7 @@ const headerTitle = computed(() =>
 
 const onThisPageGroups = computed(() => [
   {
-    label: "Model results",
+    label: "",
     items: [
       { id: "charts", label: "Charts" },
       { id: "summary", label: "Summary" },
@@ -398,7 +398,7 @@ const onThisPageGroups = computed(() => [
 }
 .results h1 { font-size: 1.5rem; margin: 0 0 0.5rem; }
 .results h2 { font-size: 1rem; margin: 0 0 0.5rem; }
-.results h3 { font-size: 0.875rem; margin: 0 0 0.25rem; }
+.results h3 { font-size: 1rem; margin: 0 0 0.25rem; }
 .results__subtitle { margin: 0.25rem 0 0; opacity: 0.65; }
 .results__error { color: #ef4444; }
 .results__loading { opacity: 0.7; }

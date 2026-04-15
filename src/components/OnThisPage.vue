@@ -53,7 +53,7 @@ function go(id: string, e: MouseEvent) {
   <nav class="otp" aria-label="On this page">
     <h4 class="otp__title">On this page</h4>
     <div v-for="g in groups" :key="g.label" class="otp__group">
-      <div class="otp__group-label">{{ g.label }}</div>
+      <div v-if="g.label" class="otp__group-label">{{ g.label }}</div>
       <ul class="otp__list">
         <li v-for="item in g.items" :key="item.id">
           <a
