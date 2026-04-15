@@ -51,7 +51,6 @@ interface ChartData {
 }
 
 const UNMITIGATED_COLOR = "#9ca3af"; // neutral gray for the counterfactual
-const MITIGATED_COLOR = "#1f2937";   // near-black primary line
 
 function buildChart(
   kind: OutputTypeLabel,
@@ -85,7 +84,6 @@ function buildChart(
     });
     series.push({
       data: scale(extract(mitigated), sc.divisor),
-      color: MITIGATED_COLOR,
       strokeWidth: 2,
       legend: "Mitigated",
     });
@@ -93,7 +91,6 @@ function buildChart(
   } else {
     series.push({
       data: scale(primaryData, sc.divisor),
-      color: MITIGATED_COLOR,
       strokeWidth: 2,
       legend: "Unmitigated",
     });
@@ -291,7 +288,6 @@ const onThisPageGroups = computed(() => [
             :series="hospChart.series"
             :x-labels="hospChart.xLabels"
             :area-sections="hospChart.areaSections"
-            :y-label="`Incidence${hospChart.scale.unit ? ` (${hospChart.scale.unit})` : ''}`"
             :height="180"
             :y-min="0"
             :x-min="0"
@@ -314,7 +310,6 @@ const onThisPageGroups = computed(() => [
             :series="symptomaticChart.series"
             :x-labels="symptomaticChart.xLabels"
             :area-sections="symptomaticChart.areaSections"
-            :y-label="`Incidence${symptomaticChart.scale.unit ? ` (${symptomaticChart.scale.unit})` : ''}`"
             :height="180"
             :y-min="0"
             :x-min="0"
@@ -336,14 +331,14 @@ const onThisPageGroups = computed(() => [
       <section class="results__section">
         <h1>Infection Incidence by Age Group</h1>
         <div class="results__grid-n">
-          <div v-for="g in groupCharts" :key="g.label" class="results__small">
+          <div v-for="(g, gi) in groupCharts" :key="g.label" class="results__small">
             <h3>{{ g.label }}</h3>
             <LineChart
               v-if="g.data"
               :series="g.data.series"
               :x-labels="g.data.xLabels"
               :area-sections="g.data.areaSections"
-              :y-label="g.data.scale.unit ? `(${g.data.scale.unit})` : ''"
+              :y-label="gi === 0 && g.data.scale.unit ? `(${g.data.scale.unit})` : ''"
               :height="200"
               :y-min="0"
               :x-min="0"
