@@ -7,6 +7,7 @@ import SummaryView from "./SummaryView.vue";
 import DetectionSection from "../sections/DetectionSection.vue";
 import { useParams, type ModelOutputExport, type OutputItemGrouped, type OutputTypeLabel } from "../composables/useParams";
 import { useModelRun } from "../composables/useModelRun";
+import { pickScale, scale, type Scale } from "../utils/chartScale";
 
 const { params, days } = useParams();
 const { results, running, error } = useModelRun();
@@ -25,23 +26,6 @@ function xLabels(rows: OutputItemGrouped[]): string[] {
   return rows.map((r) => String(Math.round(r.time)));
 }
 
-// --- unit scaling ----------------------------------------------------------
-
-interface Scale {
-  divisor: number;
-  unit: string;
-}
-
-function pickScale(maxValue: number): Scale {
-  if (maxValue >= 1e6) return { divisor: 1e6, unit: "Millions" };
-  if (maxValue >= 1e3) return { divisor: 1e3, unit: "Thousands" };
-  return { divisor: 1, unit: "" };
-}
-
-function scale(data: number[], divisor: number): number[] {
-  return divisor === 1 ? data : data.map((v) => v / divisor);
-}
-
 // --- chart building --------------------------------------------------------
 
 interface ChartData {
@@ -49,6 +33,7 @@ interface ChartData {
   xLabels: string[];
   scale: Scale;
   areaSections: AreaSection[];
+  rawBySeries: number[][];
 }
 
 const UNMITIGATED_COLOR = "#9ca3af"; // neutral gray for the counterfactual
@@ -75,19 +60,24 @@ function buildChart(
   const sc = pickScale(max);
 
   const series: Series[] = [];
+  const rawBySeries: number[][] = [];
   let mitigatedSeriesIndex = 0;
   if (hasBoth) {
+    const unmitRaw = extract(unmitigated);
     series.push({
-      data: scale(extract(unmitigated), sc.divisor),
+      data: scale(unmitRaw, sc.divisor),
       color: UNMITIGATED_COLOR,
       dashed: true,
       legend: "Unmitigated",
     });
+    rawBySeries.push(unmitRaw);
+    const mitRaw = extract(mitigated);
     series.push({
-      data: scale(extract(mitigated), sc.divisor),
+      data: scale(mitRaw, sc.divisor),
       strokeWidth: 2,
       legend: "Mitigated",
     });
+    rawBySeries.push(mitRaw);
     mitigatedSeriesIndex = 1;
   } else {
     series.push({
@@ -95,6 +85,7 @@ function buildChart(
       strokeWidth: 2,
       legend: "Unmitigated",
     });
+    rawBySeries.push(primaryData);
   }
 
   return {
@@ -102,6 +93,7 @@ function buildChart(
     xLabels: xLabels(primary),
     scale: sc,
     areaSections: buildAreaSections(primary, mitigatedSeriesIndex, showAreaLegend),
+    rawBySeries,
   };
 }
 
@@ -255,7 +247,7 @@ const onThisPageGroups = computed(() => [
               :values="values"
               :x-labels="overallChart.xLabels"
               :series="overallChart.series"
-              :unit="overallChart.scale.unit"
+              :raw-by-series="overallChart.rawBySeries"
             />
           </template>
         </LineChart>
@@ -281,7 +273,7 @@ const onThisPageGroups = computed(() => [
                 :values="values"
                 :x-labels="deathChart.xLabels"
                 :series="deathChart.series"
-                :unit="deathChart.scale.unit"
+                :raw-by-series="deathChart.rawBySeries"
               />
             </template>
           </LineChart>
@@ -304,7 +296,7 @@ const onThisPageGroups = computed(() => [
                 :values="values"
                 :x-labels="hospChart.xLabels"
                 :series="hospChart.series"
-                :unit="hospChart.scale.unit"
+                :raw-by-series="hospChart.rawBySeries"
               />
             </template>
           </LineChart>
@@ -327,7 +319,7 @@ const onThisPageGroups = computed(() => [
                 :values="values"
                 :x-labels="symptomaticChart.xLabels"
                 :series="symptomaticChart.series"
-                :unit="symptomaticChart.scale.unit"
+                :raw-by-series="symptomaticChart.rawBySeries"
               />
             </template>
           </LineChart>
@@ -357,7 +349,7 @@ const onThisPageGroups = computed(() => [
                   :values="values"
                   :x-labels="g.data.xLabels"
                   :series="g.data.series"
-                  :unit="g.data.scale.unit"
+                  :raw-by-series="g.data.rawBySeries"
                 />
               </template>
             </LineChart>

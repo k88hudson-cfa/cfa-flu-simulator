@@ -8,6 +8,7 @@ import {
   type ModelOutputExport,
   type OutputItemGrouped,
 } from "../composables/useParams";
+import { pickScale, scale } from "../utils/chartScale";
 
 const props = defineProps<{
   results: ModelOutputExport | null;
@@ -23,16 +24,6 @@ const pTestSymptoPct = computed({
 });
 
 const UNMITIGATED_COLOR = "#9ca3af";
-
-function pickScale(max: number): { divisor: number; unit: string } {
-  if (max >= 1e6) return { divisor: 1e6, unit: "Millions" };
-  if (max >= 1e3) return { divisor: 1e3, unit: "Thousands" };
-  return { divisor: 1, unit: "" };
-}
-
-function scaleSeries(data: number[], divisor: number): number[] {
-  return divisor === 1 ? data : data.map((v) => v / divisor);
-}
 
 const symptomaticRows = computed<OutputItemGrouped[] | null>(() => {
   const r = props.results;
@@ -55,18 +46,23 @@ const testedChart = computed(() => {
   const xLabels = rows.map((r) => String(Math.round(r.time)));
   const series: Series[] = [
     {
-      data: scaleSeries(allCases, sc.divisor),
+      data: scale(allCases, sc.divisor),
       color: UNMITIGATED_COLOR,
       legend: "All",
     },
     {
-      data: scaleSeries(tested, sc.divisor),
+      data: scale(tested, sc.divisor),
       color: "var(--accent)",
       strokeWidth: 2,
       legend: "Tested",
     },
   ];
-  return { series, xLabels, scale: sc };
+  return {
+    series,
+    xLabels,
+    scale: sc,
+    rawBySeries: [allCases, tested],
+  };
 });
 
 const pDetectChart = computed(() => {
@@ -74,10 +70,14 @@ const pDetectChart = computed(() => {
   if (!r) return null;
   const pd = r.p_detect.Mitigated ?? r.p_detect.Unmitigated;
   if (!pd || pd.length === 0) return null;
-  const xLabels = pd.map((p) => String(Math.round(p.time)));
+  // Truncate at 5 steps after probability first hits 100%, or end of sim.
+  const hitIdx = pd.findIndex((p) => p.value >= 1);
+  const endIdx = hitIdx >= 0 ? Math.min(pd.length, hitIdx + 6) : pd.length;
+  const trimmed = pd.slice(0, endIdx);
+  const xLabels = trimmed.map((p) => String(Math.round(p.time)));
   const series: Series[] = [
     {
-      data: pd.map((p) => p.value * 100),
+      data: trimmed.map((p) => p.value * 100),
       color: "var(--accent)",
       strokeWidth: 2,
       legend: "P(detect ≥ 1)",
@@ -138,7 +138,7 @@ const subtitle = computed(
                 :values="values"
                 :x-labels="testedChart.xLabels"
                 :series="testedChart.series"
-                :unit="testedChart.scale.unit"
+                :raw-by-series="testedChart.rawBySeries"
               />
             </template>
           </LineChart>

@@ -1,13 +1,38 @@
 <script setup lang="ts">
 import type { Series } from "cfasim-ui/charts";
 
-defineProps<{
+const props = defineProps<{
   index: number;
   values: { value: number; color: string; seriesIndex: number }[];
   xLabels: string[];
   series: Series[];
-  unit: string;
+  // Raw (unscaled) per-series data. If provided, each value is formatted
+  // with its own scale. Otherwise we fall back to the displayed value.
+  rawBySeries?: number[][];
+  // Optional unit suffix for values that aren't auto-scaled (e.g. "%").
+  unit?: string;
 }>();
+
+function formatScaled(v: number): string {
+  if (v >= 1e6) {
+    const n = v / 1e6;
+    const d = n >= 100 ? 0 : n >= 10 ? 1 : 2;
+    return `${n.toFixed(d)} million`;
+  }
+  if (v >= 1e3) {
+    const n = v / 1e3;
+    const d = n >= 100 ? 0 : n >= 10 ? 1 : 2;
+    return `${n.toFixed(d)} thousand`;
+  }
+  return Math.round(v).toLocaleString();
+}
+
+function formatValue(displayed: number, seriesIdx: number): string {
+  const raw = props.rawBySeries?.[seriesIdx]?.[props.index];
+  if (raw !== undefined) return formatScaled(raw);
+  if (props.unit) return `${displayed.toFixed(2)}${props.unit}`;
+  return displayed.toFixed(2);
+}
 </script>
 
 <template>
@@ -16,9 +41,7 @@ defineProps<{
     <div v-for="(v, i) in values" :key="i" class="tt__row">
       <span class="tt__swatch" :style="{ background: v.color }" />
       <span class="tt__label">{{ series[v.seriesIndex].legend }}</span>
-      <span class="tt__value">
-        {{ v.value.toFixed(2) }}{{ unit ? ` ${unit.toLowerCase()}` : "" }}
-      </span>
+      <span class="tt__value">{{ formatValue(v.value, v.seriesIndex) }}</span>
     </div>
   </div>
 </template>
@@ -45,6 +68,10 @@ defineProps<{
   width: 0.6rem;
   height: 0.6rem;
   border-radius: 2px;
+}
+.tt__label,
+.tt__value {
+  white-space: nowrap;
 }
 .tt__value {
   font-variant-numeric: tabular-nums;
