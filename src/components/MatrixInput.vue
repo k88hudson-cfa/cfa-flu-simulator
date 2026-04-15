@@ -3,7 +3,7 @@
 // nalgebra's native layout (see model/default-params.toml for details).
 // Index into flat: row r, col c → flat[c * n + r].
 import { computed } from "vue";
-import { NumberInput } from "cfasim-ui/components";
+import { Hint, NumberInput } from "cfasim-ui/components";
 import { getField } from "../config/uiConfig";
 import { useParams } from "../composables/useParams";
 
@@ -38,7 +38,7 @@ function update(row: number, col: number, value: number) {
   <div class="matrix-input">
     <label class="matrix-input__label">
       {{ cfg.label }}
-      <span v-if="cfg.tooltip" class="matrix-input__hint" :title="cfg.tooltip">(?)</span>
+      <Hint v-if="cfg.tooltip" :text="cfg.tooltip" />
     </label>
     <table class="matrix-input__table">
       <thead>
@@ -81,10 +81,6 @@ function update(row: number, col: number, value: number) {
 .matrix-input__label {
   font-size: 0.875rem;
   opacity: 0.85;
-}
-.matrix-input__hint {
-  opacity: 0.5;
-  margin-left: 0.25rem;
 }
 .matrix-input__table {
   border-collapse: collapse;

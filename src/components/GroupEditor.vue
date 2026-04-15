@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { NumberInput, Toggle } from "cfasim-ui/components";
+import { Hint, NumberInput, Toggle } from "cfasim-ui/components";
 import { getField } from "../config/uiConfig";
 import { useParams } from "../composables/useParams";
 
@@ -51,7 +51,7 @@ const percent = computed(() => cfg.value.type === "percent");
     <div class="group-editor__header">
       <label class="group-editor__label">
         {{ cfg.label }}
-        <span v-if="cfg.tooltip" class="group-editor__hint" :title="cfg.tooltip">(?)</span>
+        <Hint v-if="cfg.tooltip" :text="cfg.tooltip" />
       </label>
       <Toggle v-model="allMode" label="All" />
     </div>
@@ -105,10 +105,6 @@ const percent = computed(() => cfg.value.type === "percent");
 .group-editor__label {
   font-size: 0.875rem;
   opacity: 0.85;
-}
-.group-editor__hint {
-  opacity: 0.5;
-  margin-left: 0.25rem;
 }
 .group-editor__grid {
   display: grid;
