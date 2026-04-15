@@ -682,6 +682,7 @@ mod test {
     #[test]
     fn final_size_relation_with_groups() {
         let mut params = default_typed2();
+        params.mitigations.vaccine.enabled = false;
         params.population = 1.0;
         params.initial_infections = 1e-8;
         params.r0 = 2.0;

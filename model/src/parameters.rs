@@ -205,6 +205,7 @@ mod tests {
     #[test]
     fn test_has_mitigations() {
         let mut params = Parameters::default();
+        params.mitigations.vaccine.enabled = false;
         assert!(!params.has_mitigations());
 
         params.mitigations.vaccine.enabled = true;
