@@ -131,6 +131,7 @@ const subtitle = computed(
             :y-min="0"
             :x-min="0"
             tooltip-trigger="hover"
+            tooltip-clamp="window"
           >
             <template #tooltip="{ index, values }">
               <ChartTooltipContent
@@ -156,6 +157,7 @@ const subtitle = computed(
             :y-min="0"
             :x-min="0"
             tooltip-trigger="hover"
+            tooltip-clamp="window"
           >
             <template #tooltip="{ index, values }">
               <ChartTooltipContent

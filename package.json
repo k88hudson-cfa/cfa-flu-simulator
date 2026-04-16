@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@cfasim-ui/theme": "^0.3.3",
-    "cfasim-ui": "^0.3.3",
+    "cfasim-ui": "^0.3.5",
     "smol-toml": "^1.6.1",
     "vue": "^3.5.30"
   },
