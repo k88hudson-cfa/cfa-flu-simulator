@@ -83,35 +83,37 @@ function formatCount(n: number): string {
   <div v-if="tables.length" class="summary">
     <section v-for="t in tables" :key="t.kind" class="summary__section">
       <h3 class="summary__title">{{ t.title }}</h3>
-      <table class="summary__table">
-        <thead>
-          <tr>
-            <th class="summary__col-group">Age group</th>
-            <th>Unmitigated</th>
-            <th v-if="t.hasMitigated">Mitigated</th>
-            <th v-if="t.hasMitigated">Prevented</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in t.rows" :key="row.label">
-            <td class="summary__label">{{ row.label }}</td>
-            <td class="summary__num">{{ formatCount(row.unmitigated) }}</td>
-            <td v-if="t.hasMitigated" class="summary__num">
-              {{ row.mitigated !== null ? formatCount(row.mitigated) : "—" }}
-            </td>
-            <td v-if="t.hasMitigated" class="summary__prevented">
-              <div class="summary__prevented-value">
-                {{ row.prevented !== null ? formatCount(row.prevented) : "—" }}
-              </div>
-              <div
-                v-if="row.preventedPct !== null && row.preventedPct > 0"
-                class="summary__bar"
-                :style="{ width: `${Math.min(100, row.preventedPct * 100)}%` }"
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="summary__scroll">
+        <table class="summary__table">
+          <thead>
+            <tr>
+              <th class="summary__col-group">Age group</th>
+              <th>Unmitigated</th>
+              <th v-if="t.hasMitigated">Mitigated</th>
+              <th v-if="t.hasMitigated">Prevented</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in t.rows" :key="row.label">
+              <td class="summary__label">{{ row.label }}</td>
+              <td class="summary__num">{{ formatCount(row.unmitigated) }}</td>
+              <td v-if="t.hasMitigated" class="summary__num">
+                {{ row.mitigated !== null ? formatCount(row.mitigated) : "—" }}
+              </td>
+              <td v-if="t.hasMitigated" class="summary__prevented">
+                <div class="summary__prevented-value">
+                  {{ row.prevented !== null ? formatCount(row.prevented) : "—" }}
+                </div>
+                <div
+                  v-if="row.preventedPct !== null && row.preventedPct > 0"
+                  class="summary__bar"
+                  :style="{ width: `${Math.min(100, row.preventedPct * 100)}%` }"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
   </div>
 </template>
@@ -127,8 +129,13 @@ function formatCount(n: number): string {
   font-weight: 700;
   margin: 0 0 0.5rem;
 }
+.summary__scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
 .summary__table {
   width: 100%;
+  min-width: 480px;
   border-collapse: collapse;
   font-variant-numeric: tabular-nums;
 }

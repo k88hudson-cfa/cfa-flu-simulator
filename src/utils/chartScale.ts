@@ -1,6 +1,16 @@
+import type { Series, AreaSection } from "cfasim-ui/charts";
+
 export interface Scale {
   divisor: number;
   unit: string;
+}
+
+export interface ChartData {
+  series: Series[];
+  xLabels: string[];
+  scale: Scale;
+  areaSections: AreaSection[];
+  rawBySeries: number[][];
 }
 
 export function pickScale(maxValue: number): Scale {

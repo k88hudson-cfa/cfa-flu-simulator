@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { LineChart, type Series, type AreaSection } from "cfasim-ui/charts";
-import ChartTooltipContent from "../components/ChartTooltipContent.vue";
+import type { Series, AreaSection } from "cfasim-ui/charts";
+import ChartPanel from "../components/ChartPanel.vue";
 import OnThisPage from "../components/OnThisPage.vue";
 import SummaryView from "./SummaryView.vue";
 import DetectionSection from "../sections/DetectionSection.vue";
 import { useParams, type ModelOutputExport, type OutputItemGrouped, type OutputTypeLabel } from "../composables/useParams";
 import { useModelRun } from "../composables/useModelRun";
-import { pickScale, scale, type Scale } from "../utils/chartScale";
+import { pickScale, scale, type ChartData } from "../utils/chartScale";
 
 const { params, days } = useParams();
 const { results, running, error } = useModelRun();
@@ -27,14 +27,6 @@ function xLabels(rows: OutputItemGrouped[]): string[] {
 }
 
 // --- chart building --------------------------------------------------------
-
-interface ChartData {
-  series: Series[];
-  xLabels: string[];
-  scale: Scale;
-  areaSections: AreaSection[];
-  rawBySeries: number[][];
-}
 
 const UNMITIGATED_COLOR = "#9ca3af"; // neutral gray for the counterfactual
 
@@ -230,145 +222,65 @@ const onThisPageGroups = computed(() => [
       <template v-if="overallChart">
         <section class="results__section" data-otp-id="charts" id="charts">
           <h2>Overall Infection Incidence</h2>
-        <LineChart
-          :series="overallChart.series"
-          :x-labels="overallChart.xLabels"
-          :area-sections="overallChart.areaSections"
-          :y-label="`Incidence${overallChart.scale.unit ? ` (${overallChart.scale.unit})` : ''}`"
-          filename="overall-infection-incidence"
-          :height="320"
-          :y-min="0"
-          :x-min="0"
-          tooltip-trigger="hover"
-          tooltip-clamp="window"
-        >
-          <template #tooltip="{ index, values }">
-            <ChartTooltipContent
-              :index="index"
-              :values="values"
-              :x-labels="overallChart.xLabels"
-              :series="overallChart.series"
-              :raw-by-series="overallChart.rawBySeries"
+          <ChartPanel
+            :data="overallChart"
+            :y-label="`Incidence${overallChart.scale.unit ? ` (${overallChart.scale.unit})` : ''}`"
+            filename="overall-infection-incidence"
+            :height="320"
+          />
+        </section>
+
+        <section class="results__grid-3">
+          <div v-if="deathChart" class="results__small">
+            <h3>Deaths</h3>
+            <ChartPanel
+              :data="deathChart"
+              :y-label="`Incidence${deathChart.scale.unit ? ` (${deathChart.scale.unit})` : ''}`"
+              filename="death-incidence"
+              :height="180"
             />
-          </template>
-        </LineChart>
-      </section>
-
-      <section class="results__grid-3">
-        <div v-if="deathChart" class="results__small">
-          <h3>Deaths</h3>
-          <LineChart
-            :series="deathChart.series"
-            :x-labels="deathChart.xLabels"
-            :area-sections="deathChart.areaSections"
-            :y-label="`Incidence${deathChart.scale.unit ? ` (${deathChart.scale.unit})` : ''}`"
-            filename="death-incidence"
-            :height="180"
-            :y-min="0"
-            :x-min="0"
-            tooltip-trigger="hover"
-            tooltip-clamp="window"
-          >
-            <template #tooltip="{ index, values }">
-              <ChartTooltipContent
-                :index="index"
-                :values="values"
-                :x-labels="deathChart.xLabels"
-                :series="deathChart.series"
-                :raw-by-series="deathChart.rawBySeries"
-              />
-            </template>
-          </LineChart>
-        </div>
-        <div v-if="hospChart" class="results__small">
-          <h3>Hospitalizations</h3>
-          <LineChart
-            :series="hospChart.series"
-            :x-labels="hospChart.xLabels"
-            :area-sections="hospChart.areaSections"
-            filename="hospital-incidence"
-            :height="180"
-            :y-min="0"
-            :x-min="0"
-            tooltip-trigger="hover"
-            tooltip-clamp="window"
-          >
-            <template #tooltip="{ index, values }">
-              <ChartTooltipContent
-                :index="index"
-                :values="values"
-                :x-labels="hospChart.xLabels"
-                :series="hospChart.series"
-                :raw-by-series="hospChart.rawBySeries"
-              />
-            </template>
-          </LineChart>
-        </div>
-        <div v-if="symptomaticChart" class="results__small">
-          <h3>Symptomatic Infections</h3>
-          <LineChart
-            :series="symptomaticChart.series"
-            :x-labels="symptomaticChart.xLabels"
-            :area-sections="symptomaticChart.areaSections"
-            filename="symptomatic-incidence"
-            :height="180"
-            :y-min="0"
-            :x-min="0"
-            tooltip-trigger="hover"
-            tooltip-clamp="window"
-          >
-            <template #tooltip="{ index, values }">
-              <ChartTooltipContent
-                :index="index"
-                :values="values"
-                :x-labels="symptomaticChart.xLabels"
-                :series="symptomaticChart.series"
-                :raw-by-series="symptomaticChart.rawBySeries"
-              />
-            </template>
-          </LineChart>
-        </div>
-      </section>
-
-      <section class="results__section">
-        <h1>Infection Incidence by Age Group</h1>
-        <div class="results__grid-n">
-          <div v-for="(g, gi) in groupCharts" :key="g.label" class="results__small">
-            <h3>{{ g.label }}</h3>
-            <LineChart
-              v-if="g.data"
-              :series="g.data.series"
-              :x-labels="g.data.xLabels"
-              :area-sections="g.data.areaSections"
-              :y-label="gi === 0 && g.data.scale.unit ? `(${g.data.scale.unit})` : ''"
-              :filename="`infection-incidence-${g.label.toLowerCase().replace(/\\s+/g, '-')}`"
-              :height="200"
-              :y-min="0"
-              :x-min="0"
-              tooltip-trigger="hover"
-              tooltip-clamp="window"
-            >
-              <template #tooltip="{ index, values }">
-                <ChartTooltipContent
-                  :index="index"
-                  :values="values"
-                  :x-labels="g.data.xLabels"
-                  :series="g.data.series"
-                  :raw-by-series="g.data.rawBySeries"
-                />
-              </template>
-            </LineChart>
           </div>
-        </div>
-      </section>
+          <div v-if="hospChart" class="results__small">
+            <h3>Hospitalizations</h3>
+            <ChartPanel
+              :data="hospChart"
+              filename="hospital-incidence"
+              :height="180"
+            />
+          </div>
+          <div v-if="symptomaticChart" class="results__small">
+            <h3>Symptomatic Infections</h3>
+            <ChartPanel
+              :data="symptomaticChart"
+              filename="symptomatic-incidence"
+              :height="180"
+            />
+          </div>
+        </section>
 
-      <section class="results__section" data-otp-id="summary" id="summary">
-        <h1>Summary</h1>
-        <SummaryView />
-      </section>
+        <section class="results__section">
+          <h1>Infection Incidence by Age Group</h1>
+          <div class="results__grid-n">
+            <div v-for="(g, gi) in groupCharts" :key="g.label" class="results__small">
+              <h3>{{ g.label }}</h3>
+              <ChartPanel
+                v-if="g.data"
+                :data="g.data"
+                :y-label="gi === 0 && g.data.scale.unit ? `(${g.data.scale.unit})` : ''"
+                :filename="`infection-incidence-${g.label.toLowerCase().replace(/\\s+/g, '-')}`"
+                :height="200"
+              />
+            </div>
+          </div>
+        </section>
 
-      <DetectionSection :results="results" />
-    </template>
+        <section class="results__section" data-otp-id="summary" id="summary">
+          <h1>Summary</h1>
+          <SummaryView />
+        </section>
+
+        <DetectionSection :results="results" />
+      </template>
     </div>
     <aside class="results-layout__rail">
       <OnThisPage :groups="onThisPageGroups" />
@@ -378,28 +290,36 @@ const onThisPageGroups = computed(() => [
 
 <style scoped>
 .results-layout {
+  container-type: inline-size;
+  container-name: results;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 1.5rem;
   align-items: start;
 }
 .results-layout__rail {
+  display: none;
   padding: 1rem 1.5rem 1rem 0;
   align-self: stretch;
 }
-@media (max-width: 900px) {
+@container results (max-width: 819px) {
   .results-layout {
     grid-template-columns: 1fr;
   }
+}
+@container results (min-width: 820px) {
   .results-layout__rail {
-    display: none;
+    display: block;
+  }
+  .results {
+    padding-inline-end: 1.5rem;
   }
 }
 .results {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 1rem 1.5rem;
+  padding: 1rem 0 1rem 1.5rem;
   min-width: 0;
 }
 .results :deep(h1) { font-size: 1.5rem; margin: 0 0 0.5rem; }
@@ -410,12 +330,31 @@ const onThisPageGroups = computed(() => [
 .results__loading { opacity: 0.7; }
 .results__grid-3 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
 }
 .results__grid-n {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1rem;
+}
+@container results (max-width: 900px) {
+  .results {
+    padding-block: 0.5rem;
+    padding-inline-start: 0.75rem;
+    gap: 1rem;
+  }
+  .results :deep(h1) { font-size: 1.25rem; }
+  .results__grid-3 {
+    grid-template-columns: 1fr;
+  }
+  .results__grid-n {
+    grid-template-columns: 1fr;
+  }
+}
+@container results (min-width: 901px) and (max-width: 1099px) {
+  .results__grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 </style>
