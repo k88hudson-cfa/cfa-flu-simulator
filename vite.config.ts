@@ -18,5 +18,6 @@ function cfasimWasm(modelDir = "model"): Plugin {
 }
 
 export default defineConfig({
+  base: process.env.BASE_PATH ?? "/",
   plugins: [vue(), cfasimWasm()],
 });
