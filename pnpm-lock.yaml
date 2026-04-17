@@ -8,12 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@cfasim-ui/theme':
-        specifier: ^0.3.3
-        version: 0.3.5(vue@3.5.32(typescript@5.9.3))
       cfasim-ui:
-        specifier: ^0.3.5
-        version: 0.3.5(vue@3.5.32(typescript@5.9.3))
+        specifier: ^0.3.6
+        version: 0.3.6(vue@3.5.32(typescript@5.9.3))
       smol-toml:
         specifier: ^1.6.1
         version: 1.6.1
@@ -50,29 +47,29 @@ packages:
     resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
 
-  '@cfasim-ui/charts@0.3.5':
-    resolution: {integrity: sha512-VkQ0H304jka0WCImSg1MjNiMgKi3/+/nuyHNZNUFTcevRexkl0Ny8JDBlMSlqWr0PaS0Qe7TtpqTNX6pAoxq4w==}
+  '@cfasim-ui/charts@0.3.6':
+    resolution: {integrity: sha512-IuvDzm0PO38V5Xp05QstbnYQ2FKXnLMLpLT8n0ZugbHhu46JdPzV3GeJ0VQNzWSnXt2xOfcv/pMVppo7gcEGKA==}
     peerDependencies:
       vue: ^3.5.0
 
-  '@cfasim-ui/components@0.3.5':
-    resolution: {integrity: sha512-6wphwEzK3RBZkOPZDrU7W8mdwlsbd+YdlcN1Et0NQ58tJYaWNf+dJgzzhcwsmxIb3Tg+LBTbF+Mvo4K+5007hA==}
+  '@cfasim-ui/components@0.3.6':
+    resolution: {integrity: sha512-El/0xnqwPzHcnr+wzdEs0rxy7kYC+jzG+tRYdjB7QkyIlUHwGkaPNRv6FUbkiUWe023QvpMi60BeNKewaIXUJg==}
     peerDependencies:
       vue: ^3.5.0
 
-  '@cfasim-ui/pyodide@0.3.5':
-    resolution: {integrity: sha512-gr62+INHKZxoY3FQuqWllj3P0l7Nun6Xj6jmzf+ZTqre/jS0ohp9YlLxeWa1lzk6AkGRUmJlWFSB9jXU6r+oYQ==}
+  '@cfasim-ui/pyodide@0.3.6':
+    resolution: {integrity: sha512-sxXk8ug3bwz0C3iwCw2YIiab0nH+dL7k2CinTVjaPhVRDlWPNjmJB6RIVSGWGygswvgUc7zDFaDA5v/466hbpA==}
     peerDependencies:
       vue: ^3.5.0
 
-  '@cfasim-ui/shared@0.3.5':
-    resolution: {integrity: sha512-fjjWiupu5lIpx8L4IOlHDSq1qlldcLqBxmftBQ0HPn+gbnEmtCf01QL6LAnOfsPnuDy9Y09KCVB8tT5nxfdLxw==}
+  '@cfasim-ui/shared@0.3.6':
+    resolution: {integrity: sha512-CAGTb7NNPxoie50kZq7Z9bP4V7gkAT1una1n54pOtaOGkulKMpb3MtYSZpOIryrGhEIZHKLhhbT/6cIrUsFPLg==}
 
-  '@cfasim-ui/theme@0.3.5':
-    resolution: {integrity: sha512-lFIQkTMZqUupnbc8l42eixhDbAL9KeMdGqEujVyyYMRfObbjVM5M0uqrVGm+tmfYGZgcfs7FC3Hh/7UYakwRaA==}
+  '@cfasim-ui/theme@0.3.6':
+    resolution: {integrity: sha512-1n9dyi5OZtI7KLC8bDdqykhOW1td/tptBz0PImtPGMpc1Mq1XnBh6HBzqp3VWj123nMJuCnCIEJLTbSIXtu5YA==}
 
-  '@cfasim-ui/wasm@0.3.5':
-    resolution: {integrity: sha512-zzs8a2qdKHIMwB4Pm+0DjHHtZL2bpqO+KSbt+/qwGuAe/ZoMRlOro2vlm91lWT0zlly/tlSK4Dd0y1+stbwczA==}
+  '@cfasim-ui/wasm@0.3.6':
+    resolution: {integrity: sha512-IeowKE3aX2cAIUsqDrDeagXrO8zyB1sReYz/smkLH1h5pSCSH9VDkNDQxfOmWrJaXWAVWrOFu2GX8DWz0Ma+8w==}
     peerDependencies:
       vue: ^3.5.0
 
@@ -289,8 +286,8 @@ packages:
     resolution: {integrity: sha512-ik3ZgC9dY/lYVVM++OISsaYDeg1tb0VtP5uL3ouh1koGOaUMDPpbFIei4JkFimWUFPn90sbMNMXQAIVOlnYKJA==}
     engines: {node: '>=10'}
 
-  cfasim-ui@0.3.5:
-    resolution: {integrity: sha512-xDlKr5X5WvT+C1KVMNpFTeAnweLRXTVsmeHbzMzp5yonfLMn1SiRcTItDNJiFpflq3OxpPBikW8Ql4wW3X+EMQ==}
+  cfasim-ui@0.3.6:
+    resolution: {integrity: sha512-AD970E93RkcFDuCa+3un1sNZMru9hEzZqmDKMKdmqOttrHG5tQEIGMQiDDy/oDExASpiDD8KESWdWaZYbgs3/g==}
     peerDependencies:
       vue: ^3.5.0
 
@@ -601,9 +598,9 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
-  '@cfasim-ui/charts@0.3.5(vue@3.5.32(typescript@5.9.3))':
+  '@cfasim-ui/charts@0.3.6(vue@3.5.32(typescript@5.9.3))':
     dependencies:
-      '@cfasim-ui/shared': 0.3.5
+      '@cfasim-ui/shared': 0.3.6
       d3-geo: 3.1.1
       d3-selection: 3.0.0
       d3-zoom: 3.0.0
@@ -613,35 +610,35 @@ snapshots:
     transitivePeerDependencies:
       - '@vue/composition-api'
 
-  '@cfasim-ui/components@0.3.5(vue@3.5.32(typescript@5.9.3))':
+  '@cfasim-ui/components@0.3.6(vue@3.5.32(typescript@5.9.3))':
     dependencies:
       reka-ui: 2.9.6(vue@3.5.32(typescript@5.9.3))
       vue: 3.5.32(typescript@5.9.3)
     transitivePeerDependencies:
       - '@vue/composition-api'
 
-  '@cfasim-ui/pyodide@0.3.5(vue@3.5.32(typescript@5.9.3))':
+  '@cfasim-ui/pyodide@0.3.6(vue@3.5.32(typescript@5.9.3))':
     dependencies:
-      '@cfasim-ui/shared': 0.3.5
+      '@cfasim-ui/shared': 0.3.6
       pyodide: 0.29.3
       vue: 3.5.32(typescript@5.9.3)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@cfasim-ui/shared@0.3.5': {}
+  '@cfasim-ui/shared@0.3.6': {}
 
-  '@cfasim-ui/theme@0.3.5(vue@3.5.32(typescript@5.9.3))':
+  '@cfasim-ui/theme@0.3.6(vue@3.5.32(typescript@5.9.3))':
     dependencies:
-      '@cfasim-ui/charts': 0.3.5(vue@3.5.32(typescript@5.9.3))
-      '@cfasim-ui/components': 0.3.5(vue@3.5.32(typescript@5.9.3))
+      '@cfasim-ui/charts': 0.3.6(vue@3.5.32(typescript@5.9.3))
+      '@cfasim-ui/components': 0.3.6(vue@3.5.32(typescript@5.9.3))
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
 
-  '@cfasim-ui/wasm@0.3.5(vue@3.5.32(typescript@5.9.3))':
+  '@cfasim-ui/wasm@0.3.6(vue@3.5.32(typescript@5.9.3))':
     dependencies:
-      '@cfasim-ui/shared': 0.3.5
+      '@cfasim-ui/shared': 0.3.6
       vue: 3.5.32(typescript@5.9.3)
 
   '@emnapi/core@1.9.2':
@@ -849,14 +846,14 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  cfasim-ui@0.3.5(vue@3.5.32(typescript@5.9.3)):
+  cfasim-ui@0.3.6(vue@3.5.32(typescript@5.9.3)):
     dependencies:
-      '@cfasim-ui/charts': 0.3.5(vue@3.5.32(typescript@5.9.3))
-      '@cfasim-ui/components': 0.3.5(vue@3.5.32(typescript@5.9.3))
-      '@cfasim-ui/pyodide': 0.3.5(vue@3.5.32(typescript@5.9.3))
-      '@cfasim-ui/shared': 0.3.5
-      '@cfasim-ui/theme': 0.3.5(vue@3.5.32(typescript@5.9.3))
-      '@cfasim-ui/wasm': 0.3.5(vue@3.5.32(typescript@5.9.3))
+      '@cfasim-ui/charts': 0.3.6(vue@3.5.32(typescript@5.9.3))
+      '@cfasim-ui/components': 0.3.6(vue@3.5.32(typescript@5.9.3))
+      '@cfasim-ui/pyodide': 0.3.6(vue@3.5.32(typescript@5.9.3))
+      '@cfasim-ui/shared': 0.3.6
+      '@cfasim-ui/theme': 0.3.6(vue@3.5.32(typescript@5.9.3))
+      '@cfasim-ui/wasm': 0.3.6(vue@3.5.32(typescript@5.9.3))
       vue: 3.5.32(typescript@5.9.3)
     transitivePeerDependencies:
       - '@vue/composition-api'
