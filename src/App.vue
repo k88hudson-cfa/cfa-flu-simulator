@@ -16,7 +16,7 @@ const { ready, reset } = provideParams();
     <template #sidebar>
       <template v-if="ready">
         <div class="toolbar">
-          <Button variant="secondary" @click="reset">Reset</Button>
+          <Button variant="secondary" @click="reset">Reset Parameters</Button>
         </div>
         <h2>Scenario</h2>
         <ScenarioSection />
@@ -36,9 +36,11 @@ const { ready, reset } = provideParams();
 :root {
   --accent: rgb(0, 87, 183);
 }
+
 [data-theme="cdc"] {
   --font-weight-heading: 600;
 }
+
 .input-label {
   font-size: var(--font-size-sm);
 }
@@ -49,11 +51,13 @@ const { ready, reset } = provideParams();
   padding: 1rem;
   opacity: 0.7;
 }
+
 .toolbar {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
 }
+
 :deep(.MainContent) {
   max-width: 1600px;
 }
