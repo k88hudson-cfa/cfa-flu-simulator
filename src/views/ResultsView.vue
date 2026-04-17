@@ -9,7 +9,7 @@ import { useParams, type ModelOutputExport, type OutputItemGrouped, type OutputT
 import { useModelRun } from "../composables/useModelRun";
 import { pickScale, scale, type ChartData } from "../utils/chartScale";
 
-const { params, days } = useParams();
+const { params } = useParams();
 const { results, running, error } = useModelRun();
 
 // --- series extraction helpers ---------------------------------------------
@@ -114,11 +114,15 @@ function buildAreaSections(
     return best;
   };
 
-  const vax = params.mitigations.vaccine;
-  if (vax.enabled && vax.administration_rate > 0 && vax.doses_available > 0) {
-    const campaignDays = vax.doses_available / vax.administration_rate;
-    const startDay = vax.start + vax.ramp_up;
-    const endDay = Math.min(days.value, startDay + campaignDays);
+  if (
+    params.vaccine_enabled &&
+    params.vaccine_administration_rate > 0 &&
+    params.vaccine_doses_available > 0
+  ) {
+    const campaignDays =
+      params.vaccine_doses_available / params.vaccine_administration_rate;
+    const startDay = params.vaccine_start + params.vaccine_ramp_up;
+    const endDay = Math.min(params.days, startDay + campaignDays);
     if (endDay > startDay) {
       sections.push({
         seriesIndex,
@@ -127,22 +131,24 @@ function buildAreaSections(
         color: "var(--accent)",
         opacity: 0.18,
         label: `Day ${Math.round(startDay)}–${Math.round(endDay)}`,
-        description: `${formatDoses(vax.doses_available)} vaccines administered`,
+        description: `${formatDoses(params.vaccine_doses_available)} vaccines administered`,
         legend,
       });
     }
   }
 
-  const comm = params.mitigations.community;
-  if (comm.enabled && comm.duration > 0) {
-    const end = Math.min(days.value, comm.start + comm.duration);
+  if (params.community_enabled && params.community_duration > 0) {
+    const end = Math.min(
+      params.days,
+      params.community_start + params.community_duration,
+    );
     sections.push({
       seriesIndex,
-      startIndex: atDay(comm.start),
+      startIndex: atDay(params.community_start),
       endIndex: atDay(end),
       color: "#f59e0b",
       opacity: 0.15,
-      label: `Day ${Math.round(comm.start)}–${Math.round(end)}`,
+      label: `Day ${Math.round(params.community_start)}–${Math.round(end)}`,
       description: "Community mitigation",
       legend,
     });
@@ -179,15 +185,15 @@ const groupCharts = computed(() => {
 // Subtitle based on active mitigations
 const subtitle = computed(() => {
   const active: string[] = [];
-  if (params.mitigations.vaccine.enabled) active.push("vaccination");
-  if (params.mitigations.antivirals.enabled) active.push("antivirals");
-  if (params.mitigations.community.enabled) active.push("community mitigation");
-  if (params.mitigations.ttiq.enabled) active.push("TTIQ");
+  if (params.vaccine_enabled) active.push("vaccination");
+  if (params.antivirals_enabled) active.push("antivirals");
+  if (params.community_enabled) active.push("community mitigation");
+  if (params.ttiq_enabled) active.push("TTIQ");
   const pop = formatDoses(params.population);
   if (active.length === 0) {
-    return `Baseline scenario: population ${pop} over ${days.value} days`;
+    return `Baseline scenario: population ${pop} over ${params.days} days`;
   }
-  return `Impact of ${active.join(" + ")} on a population of ${pop} over ${days.value} days`;
+  return `Impact of ${active.join(" + ")} on a population of ${pop} over ${params.days} days`;
 });
 
 const headerTitle = computed(() =>

@@ -6,18 +6,17 @@ import ParamField from "../components/ParamField.vue";
 import { useParams } from "../composables/useParams";
 import { getField } from "../config/uiConfig";
 
-const { params, days } = useParams();
-const vax = computed(() => params.mitigations.vaccine);
+const { params } = useParams();
 
-const dosesCfg = getField("mitigations.vaccine.doses");
+const dosesCfg = getField("vaccine_doses");
 const dosesOptions = (dosesCfg.options ?? []).map((o) => ({
   value: String(o.value),
   label: o.label,
 }));
 const dosesString = computed({
-  get: () => String(vax.value.doses),
+  get: () => String(params.vaccine_doses),
   set: (v: string) => {
-    vax.value.doses = Number(v);
+    params.vaccine_doses = Number(v);
   },
 });
 </script>
@@ -25,40 +24,40 @@ const dosesString = computed({
 <template>
   <MitigationSection
     label="Vaccine"
-    :enabled="vax.enabled"
-    @update:enabled="vax.enabled = $event"
+    :enabled="params.vaccine_enabled"
+    @update:enabled="params.vaccine_enabled = $event"
   >
     <SelectBox
       :label="dosesCfg.label"
       v-model="dosesString"
       :options="dosesOptions"
     />
-    <ParamField path="mitigations.vaccine.start" v-model="vax.start" :max="days" />
+    <ParamField path="vaccine_start" v-model="params.vaccine_start" :max="params.days" />
     <ParamField
-      path="mitigations.vaccine.doses_available"
-      v-model="vax.doses_available"
+      path="vaccine_doses_available"
+      v-model="params.vaccine_doses_available"
       :max="params.population"
     />
     <ParamField
-      path="mitigations.vaccine.administration_rate"
-      v-model="vax.administration_rate"
+      path="vaccine_administration_rate"
+      v-model="params.vaccine_administration_rate"
     />
-    <template v-if="vax.doses === 2">
+    <template v-if="params.vaccine_doses === 2">
       <ParamField
-        path="mitigations.vaccine.dose2_delay"
-        v-model="vax.dose2_delay"
-        :max="days"
+        path="vaccine_dose2_delay"
+        v-model="params.vaccine_dose2_delay"
+        :max="params.days"
       />
-      <ParamField path="mitigations.vaccine.p_get_2_doses" v-model="vax.p_get_2_doses" />
+      <ParamField path="vaccine_p_get_2_doses" v-model="params.vaccine_p_get_2_doses" />
     </template>
-    <ParamField path="mitigations.vaccine.ve_s" v-model="vax.ve_s" />
-    <ParamField path="mitigations.vaccine.ve_i" v-model="vax.ve_i" />
-    <ParamField path="mitigations.vaccine.ve_p" v-model="vax.ve_p" />
-    <template v-if="vax.doses === 2">
-      <ParamField path="mitigations.vaccine.ve_2s" v-model="vax.ve_2s" />
-      <ParamField path="mitigations.vaccine.ve_2i" v-model="vax.ve_2i" />
-      <ParamField path="mitigations.vaccine.ve_2p" v-model="vax.ve_2p" />
+    <ParamField path="vaccine_ve_s" v-model="params.vaccine_ve_s" />
+    <ParamField path="vaccine_ve_i" v-model="params.vaccine_ve_i" />
+    <ParamField path="vaccine_ve_p" v-model="params.vaccine_ve_p" />
+    <template v-if="params.vaccine_doses === 2">
+      <ParamField path="vaccine_ve_2s" v-model="params.vaccine_ve_2s" />
+      <ParamField path="vaccine_ve_2i" v-model="params.vaccine_ve_2i" />
+      <ParamField path="vaccine_ve_2p" v-model="params.vaccine_ve_2p" />
     </template>
-    <ParamField path="mitigations.vaccine.ramp_up" v-model="vax.ramp_up" />
+    <ParamField path="vaccine_ramp_up" v-model="params.vaccine_ramp_up" />
   </MitigationSection>
 </template>

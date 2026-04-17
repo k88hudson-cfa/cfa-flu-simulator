@@ -10,7 +10,7 @@ import TTIQSection from "./sections/TTIQSection.vue";
 import ResultsView from "./views/ResultsView.vue";
 import { generateReport } from "./utils/pdfReport";
 
-const { ready, params, days } = provideParams();
+const { ready, params, reset } = provideParams();
 const downloading = ref(false);
 
 async function handleDownload() {
@@ -18,7 +18,7 @@ async function handleDownload() {
   if (!container || downloading.value) return;
   downloading.value = true;
   try {
-    await generateReport(container, params, days.value);
+    await generateReport(container, params);
   } catch (e) {
     console.error("Report generation failed", e);
   } finally {
@@ -31,14 +31,16 @@ async function handleDownload() {
   <SidebarLayout>
     <template #sidebar>
       <template v-if="ready">
-        <Button
-          class="download-btn"
-          variant="secondary"
-          :disabled="downloading"
-          @click="handleDownload"
-        >
-          {{ downloading ? "Generating…" : "Download report" }}
-        </Button>
+        <div class="toolbar">
+          <Button variant="secondary" @click="reset">Reset</Button>
+          <Button
+            variant="secondary"
+            :disabled="downloading"
+            @click="handleDownload"
+          >
+            {{ downloading ? "Generating…" : "Download report" }}
+          </Button>
+        </div>
         <h2>Scenario</h2>
         <ScenarioSection />
         <h2>Mitigations</h2>
@@ -70,8 +72,9 @@ async function handleDownload() {
   padding: 1rem;
   opacity: 0.7;
 }
-.download-btn {
-  align-self: flex-start;
+.toolbar {
+  display: flex;
+  gap: 0.5rem;
   margin-bottom: 1rem;
 }
 :deep(.MainContent) {

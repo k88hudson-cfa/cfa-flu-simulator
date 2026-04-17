@@ -1,10 +1,14 @@
 # Default parameters for the SEIR flu model.
 # Embedded at compile time via include_str! in src/parameters.rs.
 # n = number of population groups; all Vec<f64> fields must have length n
-# (or n*n for contact_matrix / mitigations.community.effectiveness, column-major —
+# (or n*n for contact_matrix / community_effectiveness, column-major —
 # matches nalgebra's storage; see reference parameters.rs:121 `SMatrix::from_iterator`).
+#
+# Mitigation fields are flat with prefixes (vaccine_, antivirals_,
+# community_, ttiq_) to round-trip through URL query strings.
 
 n = 2
+days = 200
 population = 330_000_000.0
 population_fraction_labels = ["Children", "Adults"]
 population_fractions = [0.25, 0.75]
@@ -24,48 +28,47 @@ p_test_sympto = 0.001
 test_sensitivity = 0.90
 p_test_forward = 0.90
 
-[mitigations.vaccine]
-enabled = true
-editable = true
-doses = 1
-start = 50.0
-dose2_delay = 30.0
-p_get_2_doses = 0.9
-administration_rate = 1_500_000.0
-doses_available = 40_000_000.0
-ramp_up = 14.0
-ve_s = 0.40
-ve_i = 0.0
-ve_p = 0.5
-ve_2s = 0.60
-ve_2i = 0.0
-ve_2p = 0.75
+# Vaccine
+vaccine_enabled = true
+vaccine_editable = true
+vaccine_doses = 1
+vaccine_start = 50.0
+vaccine_dose2_delay = 30.0
+vaccine_p_get_2_doses = 0.9
+vaccine_administration_rate = 1_500_000.0
+vaccine_doses_available = 40_000_000.0
+vaccine_ramp_up = 14.0
+vaccine_ve_s = 0.40
+vaccine_ve_i = 0.0
+vaccine_ve_p = 0.5
+vaccine_ve_2s = 0.60
+vaccine_ve_2i = 0.0
+vaccine_ve_2p = 0.75
 
-[mitigations.antivirals]
-enabled = false
-editable = true
-fraction_adhere = 0.50
-fraction_diagnosed_prescribed_inpatient = 1.0
-fraction_diagnosed_prescribed_outpatient = 0.40
-fraction_seek_care = 0.50
-ave_i = 0.30
-ave_p_hosp = 0.20
-ave_p_death = 0.1
+# Antivirals
+antivirals_enabled = false
+antivirals_editable = true
+antivirals_fraction_adhere = 0.50
+antivirals_fraction_diagnosed_prescribed_inpatient = 1.0
+antivirals_fraction_diagnosed_prescribed_outpatient = 0.40
+antivirals_fraction_seek_care = 0.50
+antivirals_ave_i = 0.30
+antivirals_ave_p_hosp = 0.20
+antivirals_ave_p_death = 0.1
 
-[mitigations.community]
-enabled = false
-editable = true
-start = 60.0
-duration = 20.0
+# Community
+community_enabled = false
+community_editable = true
+community_start = 60.0
+community_duration = 20.0
 # column-major flat of matrix [[0.5, -0.10], [-0.10, 0.0]] (symmetric, so order is identical).
-# Reference Parameters<2>::default overrides MitigationParams<N>::default (0.25 everywhere).
-effectiveness = [0.5, -0.10, -0.10, 0.0]
+community_effectiveness = [0.5, -0.10, -0.10, 0.0]
 
-[mitigations.ttiq]
-enabled = false
-editable = true
-p_id_infectious = 0.15
-p_infectious_isolates = 0.75
-isolation_reduction = 0.50
-p_contact_trace = 0.25
-p_traced_quarantines = 0.75
+# TTIQ
+ttiq_enabled = false
+ttiq_editable = true
+ttiq_p_id_infectious = 0.15
+ttiq_p_infectious_isolates = 0.75
+ttiq_isolation_reduction = 0.50
+ttiq_p_contact_trace = 0.25
+ttiq_p_traced_quarantines = 0.75

@@ -18,14 +18,14 @@ export interface ModelRun {
 const THROTTLE_MS = 50;
 
 /**
- * Re-runs SEIRModelUnified whenever params or days change. Throttles
- * runs to one per THROTTLE_MS and guarantees only one run is in flight
- * at a time; coalesces bursts (the latest state runs, intermediates drop).
+ * Re-runs SEIRModelUnified whenever params change. Throttles runs to one
+ * per THROTTLE_MS and guarantees only one run is in flight at a time;
+ * coalesces bursts (the latest state runs, intermediates drop).
  *
  * Must be called from a component under a provideParams() ancestor.
  */
 export function useModelRun(): ModelRun {
-  const { params, days, ready } = useParams();
+  const { params, ready } = useParams();
   // shallowRef: the result tree is big, deeply-nested, and treated as an
   // immutable snapshot. Vue's default ref() would wrap every nested
   // object/array in a reactive Proxy on first access, allocating hundreds
@@ -77,7 +77,7 @@ export function useModelRun(): ModelRun {
       try {
         // markRaw: belt-and-suspenders; guarantees the object is never
         // turned into a reactive proxy even if accessed through a ref().
-        results.value = markRaw(model.run(days.value));
+        results.value = markRaw(model.run());
       } finally {
         // WASM panics abort instead of unwinding, so wasm-bindgen's
         // borrow guard is never dropped — free() then throws a secondary
@@ -116,7 +116,7 @@ export function useModelRun(): ModelRun {
   }
 
   watch(
-    [() => JSON.stringify(params), days, ready],
+    [() => JSON.stringify(params), ready],
     () => {
       if (!ready.value) return;
       schedule();

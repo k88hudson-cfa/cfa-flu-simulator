@@ -28,7 +28,6 @@ const PARAM_TABLE_HEAD: string[] = ["Parameter", "Value"];
 export async function generateReport(
   container: HTMLElement,
   params: Parameters,
-  days: number,
 ): Promise<void> {
   const pdf = new jsPDF({ unit: "pt", format: "letter" });
   const pageWidth = pdf.internal.pageSize.getWidth();
@@ -67,7 +66,7 @@ export async function generateReport(
     for (const t of summaryTables) y = drawTable(pdf, t, y, pageHeight);
   }
 
-  const paramTables = buildParamTables(params, days);
+  const paramTables = buildParamTables(params);
   if (paramTables.length) {
     y = startSection(pdf, "Parameters");
     for (const t of paramTables) y = drawTable(pdf, t, y, pageHeight);
@@ -324,22 +323,22 @@ const REPORT_SECTIONS: ReportSection[] = [
   {
     id: "vaccine",
     title: "Vaccine",
-    isEnabled: (p) => p.mitigations.vaccine.enabled,
+    isEnabled: (p) => p.vaccine_enabled,
   },
   {
     id: "antivirals",
     title: "Antivirals",
-    isEnabled: (p) => p.mitigations.antivirals.enabled,
+    isEnabled: (p) => p.antivirals_enabled,
   },
   {
     id: "community",
     title: "Community mitigation",
-    isEnabled: (p) => p.mitigations.community.enabled,
+    isEnabled: (p) => p.community_enabled,
   },
   {
     id: "ttiq",
     title: "TTIQ",
-    isEnabled: (p) => p.mitigations.ttiq.enabled,
+    isEnabled: (p) => p.ttiq_enabled,
   },
 ];
 
@@ -382,29 +381,13 @@ function fmtMatrix(
   return parts.join("; ");
 }
 
-// The TOML uses `scenario.*` as a UI grouping for fields that live flat on
-// Parameters (scenario.population → params.population). Mitigation paths
-// mirror the struct exactly. `scenario.days` is synthetic (days is its own
-// ref, not part of Parameters).
-function resolveValue(
-  params: Parameters,
-  days: number,
-  path: string,
-): unknown {
-  if (path === "scenario.days") return days;
-  const parts = path.split(".");
-  if (parts[0] === "scenario" && parts.length === 2) {
-    return (params as unknown as Record<string, unknown>)[parts[1]];
-  }
-  let cur: unknown = params;
-  for (const p of parts) {
-    cur = (cur as Record<string, unknown> | undefined)?.[p];
-  }
-  return cur;
+// Every TOML key matches a flat `Parameters` field.
+function resolveValue(params: Parameters, path: string): unknown {
+  return (params as unknown as Record<string, unknown>)[path];
 }
 
 function isVisible(cfg: FieldConfig, params: Parameters): boolean {
-  if (cfg.show_when_doses_2 && params.mitigations.vaccine.doses !== 2) {
+  if (cfg.show_when_doses_2 && params.vaccine_doses !== 2) {
     return false;
   }
   return true;
@@ -425,7 +408,7 @@ function buildRow(
   return [cfg.label, fmtScalar(cfg, value as number)];
 }
 
-function buildParamTables(params: Parameters, days: number): TableBlock[] {
+function buildParamTables(params: Parameters): TableBlock[] {
   const groupLabels = params.population_fraction_labels;
   const tables: TableBlock[] = [];
   for (const section of REPORT_SECTIONS) {
@@ -433,7 +416,7 @@ function buildParamTables(params: Parameters, days: number): TableBlock[] {
     const rows = fieldsInSection(section.id)
       .filter(([, cfg]) => isVisible(cfg, params))
       .map(([path, cfg]) =>
-        buildRow(path, cfg, resolveValue(params, days, path), groupLabels),
+        buildRow(path, cfg, resolveValue(params, path), groupLabels),
       );
     if (rows.length) {
       tables.push({ title: section.title, head: PARAM_TABLE_HEAD, body: rows });

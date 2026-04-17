@@ -3,18 +3,25 @@ use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
-use crate::mitigations::{MitigationParams, MitigationParamsTyped};
+use crate::mitigations::{
+    AntiviralsParams, CommunityMitigationParamsTyped, MitigationParamsTyped, TTIQParams,
+    VaccineParams,
+};
 
 static DEFAULT_TOML: &str = include_str!("../default-params.toml");
 
 // Public, flat, TOML/JSON/wasm-serializable parameter struct.
-// This is the single source of truth for the parameter *schema*.
-// Statically-sized nalgebra views live in the solver-internal
-// `ParametersTyped<N>`; conversions between the two are mechanical.
+// Mitigation fields are flattened with prefixes (vaccine_, antivirals_,
+// community_, ttiq_) so the full schema can round-trip through URL query
+// strings and flat forms. Solver code works on `ParametersTyped<N>`, which
+// keeps the mitigation grouping for readability.
 #[derive(Tsify, Debug, Clone, Serialize, Deserialize)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Parameters {
     pub n: usize,
+    // Integration horizon passed to `SEIRModelUnified::run`. Not part of
+    // the solver state but belongs with the inputs that drive a run.
+    pub days: usize,
     pub population: f64,
     pub population_fraction_labels: Vec<String>,
     pub population_fractions: Vec<f64>,
@@ -30,26 +37,65 @@ pub struct Parameters {
     pub hospitalization_delay: f64,
     pub fraction_dead: Vec<f64>,
     pub death_delay: f64,
-    pub mitigations: MitigationParams,
     pub p_test_sympto: f64,
     pub test_sensitivity: f64,
     pub p_test_forward: f64,
+
+    pub vaccine_enabled: bool,
+    pub vaccine_editable: bool,
+    pub vaccine_doses: usize,
+    pub vaccine_start: f64,
+    pub vaccine_dose2_delay: f64,
+    pub vaccine_p_get_2_doses: f64,
+    pub vaccine_administration_rate: f64,
+    pub vaccine_doses_available: f64,
+    pub vaccine_ramp_up: f64,
+    pub vaccine_ve_s: f64,
+    pub vaccine_ve_i: f64,
+    pub vaccine_ve_p: f64,
+    pub vaccine_ve_2s: f64,
+    pub vaccine_ve_2i: f64,
+    pub vaccine_ve_2p: f64,
+
+    pub antivirals_enabled: bool,
+    pub antivirals_editable: bool,
+    pub antivirals_fraction_adhere: f64,
+    pub antivirals_fraction_diagnosed_prescribed_inpatient: f64,
+    pub antivirals_fraction_diagnosed_prescribed_outpatient: f64,
+    pub antivirals_fraction_seek_care: f64,
+    pub antivirals_ave_i: f64,
+    pub antivirals_ave_p_hosp: f64,
+    pub antivirals_ave_p_death: f64,
+
+    pub community_enabled: bool,
+    pub community_editable: bool,
+    pub community_start: f64,
+    pub community_duration: f64,
+    pub community_effectiveness: Vec<f64>,
+
+    pub ttiq_enabled: bool,
+    pub ttiq_editable: bool,
+    pub ttiq_p_id_infectious: f64,
+    pub ttiq_p_infectious_isolates: f64,
+    pub ttiq_isolation_reduction: f64,
+    pub ttiq_p_contact_trace: f64,
+    pub ttiq_p_traced_quarantines: f64,
 }
 
 impl Parameters {
     pub fn has_mitigations(&self) -> bool {
-        self.mitigations.antivirals.enabled
-            || self.mitigations.community.enabled
-            || self.mitigations.vaccine.enabled
-            || self.mitigations.ttiq.enabled
+        self.vaccine_enabled
+            || self.antivirals_enabled
+            || self.community_enabled
+            || self.ttiq_enabled
     }
 
     pub fn without_mitigations(&self) -> Self {
         let mut params = self.clone();
-        params.mitigations.antivirals.enabled = false;
-        params.mitigations.community.enabled = false;
-        params.mitigations.vaccine.enabled = false;
-        params.mitigations.ttiq.enabled = false;
+        params.vaccine_enabled = false;
+        params.antivirals_enabled = false;
+        params.community_enabled = false;
+        params.ttiq_enabled = false;
         params
     }
 
@@ -73,7 +119,7 @@ impl Parameters {
         if self.contact_matrix.len() != self.n * self.n {
             return Err("contact_matrix length != n*n");
         }
-        if self.mitigations.community.effectiveness.len() != self.n * self.n {
+        if self.community_effectiveness.len() != self.n * self.n {
             return Err("community effectiveness length != n*n");
         }
         Ok(())
@@ -136,6 +182,52 @@ impl<const N: usize> TryFrom<Parameters> for ParametersTyped<N> {
             return Err("Parameters.n does not match target ParametersTyped<N>");
         }
         params.validate()?;
+        let vaccine = VaccineParams {
+            enabled: params.vaccine_enabled,
+            editable: params.vaccine_editable,
+            doses: params.vaccine_doses,
+            start: params.vaccine_start,
+            dose2_delay: params.vaccine_dose2_delay,
+            p_get_2_doses: params.vaccine_p_get_2_doses,
+            administration_rate: params.vaccine_administration_rate,
+            doses_available: params.vaccine_doses_available,
+            ramp_up: params.vaccine_ramp_up,
+            ve_s: params.vaccine_ve_s,
+            ve_i: params.vaccine_ve_i,
+            ve_p: params.vaccine_ve_p,
+            ve_2s: params.vaccine_ve_2s,
+            ve_2i: params.vaccine_ve_2i,
+            ve_2p: params.vaccine_ve_2p,
+        };
+        let antivirals = AntiviralsParams {
+            enabled: params.antivirals_enabled,
+            editable: params.antivirals_editable,
+            fraction_adhere: params.antivirals_fraction_adhere,
+            fraction_diagnosed_prescribed_inpatient: params
+                .antivirals_fraction_diagnosed_prescribed_inpatient,
+            fraction_diagnosed_prescribed_outpatient: params
+                .antivirals_fraction_diagnosed_prescribed_outpatient,
+            fraction_seek_care: params.antivirals_fraction_seek_care,
+            ave_i: params.antivirals_ave_i,
+            ave_p_hosp: params.antivirals_ave_p_hosp,
+            ave_p_death: params.antivirals_ave_p_death,
+        };
+        let community = CommunityMitigationParamsTyped {
+            enabled: params.community_enabled,
+            editable: params.community_editable,
+            start: params.community_start,
+            duration: params.community_duration,
+            effectiveness: SMatrix::from_iterator(params.community_effectiveness),
+        };
+        let ttiq = TTIQParams {
+            enabled: params.ttiq_enabled,
+            editable: params.ttiq_editable,
+            p_id_infectious: params.ttiq_p_id_infectious,
+            p_infectious_isolates: params.ttiq_p_infectious_isolates,
+            isolation_reduction: params.ttiq_isolation_reduction,
+            p_contact_trace: params.ttiq_p_contact_trace,
+            p_traced_quarantines: params.ttiq_p_traced_quarantines,
+        };
         Ok(ParametersTyped {
             population: params.population,
             population_fractions: SVector::from_iterator(params.population_fractions),
@@ -151,7 +243,12 @@ impl<const N: usize> TryFrom<Parameters> for ParametersTyped<N> {
             hospitalization_delay: params.hospitalization_delay,
             fraction_dead: SVector::from_iterator(params.fraction_dead),
             death_delay: params.death_delay,
-            mitigations: MitigationParamsTyped::try_from(params.mitigations)?,
+            mitigations: MitigationParamsTyped {
+                vaccine,
+                antivirals,
+                community,
+                ttiq,
+            },
             p_test_sympto: params.p_test_sympto,
             test_sensitivity: params.test_sensitivity,
             p_test_forward: params.p_test_forward,
@@ -161,8 +258,15 @@ impl<const N: usize> TryFrom<Parameters> for ParametersTyped<N> {
 
 impl<const N: usize> From<ParametersTyped<N>> for Parameters {
     fn from(params: ParametersTyped<N>) -> Self {
+        let v = params.mitigations.vaccine;
+        let a = params.mitigations.antivirals;
+        let c = params.mitigations.community;
+        let t = params.mitigations.ttiq;
         Parameters {
             n: N,
+            // `days` is a run-level arg, not part of ParametersTyped. The
+            // From impl exists only for the roundtrip test; fill a default.
+            days: 200,
             population: params.population,
             population_fractions: params.population_fractions.iter().copied().collect(),
             population_fraction_labels: params.population_fraction_labels.iter().cloned().collect(),
@@ -177,10 +281,51 @@ impl<const N: usize> From<ParametersTyped<N>> for Parameters {
             hospitalization_delay: params.hospitalization_delay,
             fraction_dead: params.fraction_dead.iter().copied().collect(),
             death_delay: params.death_delay,
-            mitigations: params.mitigations.into(),
             p_test_sympto: params.p_test_sympto,
             test_sensitivity: params.test_sensitivity,
             p_test_forward: params.p_test_forward,
+
+            vaccine_enabled: v.enabled,
+            vaccine_editable: v.editable,
+            vaccine_doses: v.doses,
+            vaccine_start: v.start,
+            vaccine_dose2_delay: v.dose2_delay,
+            vaccine_p_get_2_doses: v.p_get_2_doses,
+            vaccine_administration_rate: v.administration_rate,
+            vaccine_doses_available: v.doses_available,
+            vaccine_ramp_up: v.ramp_up,
+            vaccine_ve_s: v.ve_s,
+            vaccine_ve_i: v.ve_i,
+            vaccine_ve_p: v.ve_p,
+            vaccine_ve_2s: v.ve_2s,
+            vaccine_ve_2i: v.ve_2i,
+            vaccine_ve_2p: v.ve_2p,
+
+            antivirals_enabled: a.enabled,
+            antivirals_editable: a.editable,
+            antivirals_fraction_adhere: a.fraction_adhere,
+            antivirals_fraction_diagnosed_prescribed_inpatient: a
+                .fraction_diagnosed_prescribed_inpatient,
+            antivirals_fraction_diagnosed_prescribed_outpatient: a
+                .fraction_diagnosed_prescribed_outpatient,
+            antivirals_fraction_seek_care: a.fraction_seek_care,
+            antivirals_ave_i: a.ave_i,
+            antivirals_ave_p_hosp: a.ave_p_hosp,
+            antivirals_ave_p_death: a.ave_p_death,
+
+            community_enabled: c.enabled,
+            community_editable: c.editable,
+            community_start: c.start,
+            community_duration: c.duration,
+            community_effectiveness: c.effectiveness.data.as_slice().into(),
+
+            ttiq_enabled: t.enabled,
+            ttiq_editable: t.editable,
+            ttiq_p_id_infectious: t.p_id_infectious,
+            ttiq_p_infectious_isolates: t.p_infectious_isolates,
+            ttiq_isolation_reduction: t.isolation_reduction,
+            ttiq_p_contact_trace: t.p_contact_trace,
+            ttiq_p_traced_quarantines: t.p_traced_quarantines,
         }
     }
 }
@@ -205,27 +350,27 @@ mod tests {
     #[test]
     fn test_has_mitigations() {
         let mut params = Parameters::default();
-        params.mitigations.vaccine.enabled = false;
+        params.vaccine_enabled = false;
         assert!(!params.has_mitigations());
 
-        params.mitigations.vaccine.enabled = true;
+        params.vaccine_enabled = true;
         assert!(params.has_mitigations());
 
-        params.mitigations.vaccine.enabled = false;
-        params.mitigations.antivirals.enabled = true;
+        params.vaccine_enabled = false;
+        params.antivirals_enabled = true;
         assert!(params.has_mitigations());
 
-        params.mitigations.antivirals.enabled = false;
-        params.mitigations.community.enabled = true;
+        params.antivirals_enabled = false;
+        params.community_enabled = true;
         assert!(params.has_mitigations());
     }
 
     #[test]
     fn test_without_mitigations() {
         let mut params = Parameters::default();
-        params.mitigations.vaccine.enabled = true;
-        params.mitigations.antivirals.enabled = true;
-        params.mitigations.community.enabled = true;
+        params.vaccine_enabled = true;
+        params.antivirals_enabled = true;
+        params.community_enabled = true;
 
         let params_no_mitigations = params.without_mitigations();
         assert!(!params_no_mitigations.has_mitigations());
@@ -241,8 +386,8 @@ mod tests {
         assert_eq!(params.population_fractions, roundtrip.population_fractions);
         assert_eq!(params.contact_matrix, roundtrip.contact_matrix);
         assert_eq!(
-            params.mitigations.community.effectiveness,
-            roundtrip.mitigations.community.effectiveness
+            params.community_effectiveness,
+            roundtrip.community_effectiveness
         );
     }
 

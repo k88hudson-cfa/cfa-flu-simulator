@@ -1,65 +1,22 @@
-import { inject, provide, reactive, ref, type InjectionKey, type Ref } from "vue";
+import {
+  inject,
+  provide,
+  reactive,
+  ref,
+  shallowRef,
+  type InjectionKey,
+  type Ref,
+} from "vue";
+import { parse } from "smol-toml";
+import { useUrlParams } from "cfasim-ui/shared";
+import rawDefaults from "../../model/default-params.toml?raw";
 
-// Subset of the wasm module we care about. The real types are generated at
-// public/wasm/cfa-flu-simulator/cfa_flu_simulator.d.ts; reimport them here
-// to avoid coupling to the build output path in tsconfig.
-export interface VaccineParams {
-  enabled: boolean;
-  editable: boolean;
-  doses: number;
-  start: number;
-  dose2_delay: number;
-  p_get_2_doses: number;
-  administration_rate: number;
-  doses_available: number;
-  ramp_up: number;
-  ve_s: number;
-  ve_i: number;
-  ve_p: number;
-  ve_2s: number;
-  ve_2i: number;
-  ve_2p: number;
-}
-
-export interface AntiviralsParams {
-  enabled: boolean;
-  editable: boolean;
-  fraction_adhere: number;
-  fraction_diagnosed_prescribed_inpatient: number;
-  fraction_diagnosed_prescribed_outpatient: number;
-  fraction_seek_care: number;
-  ave_i: number;
-  ave_p_hosp: number;
-  ave_p_death: number;
-}
-
-export interface CommunityMitigationParams {
-  enabled: boolean;
-  editable: boolean;
-  start: number;
-  duration: number;
-  effectiveness: number[];
-}
-
-export interface TTIQParams {
-  enabled: boolean;
-  editable: boolean;
-  p_id_infectious: number;
-  p_infectious_isolates: number;
-  isolation_reduction: number;
-  p_contact_trace: number;
-  p_traced_quarantines: number;
-}
-
-export interface MitigationParams {
-  vaccine: VaccineParams;
-  antivirals: AntiviralsParams;
-  community: CommunityMitigationParams;
-  ttiq: TTIQParams;
-}
-
+// Flat schema mirrors the Rust `Parameters` struct (wasm boundary).
+// Mitigation fields are prefixed (vaccine_, antivirals_, community_, ttiq_)
+// so the whole object round-trips through URL query strings.
 export interface Parameters {
   n: number;
+  days: number;
   population: number;
   population_fraction_labels: string[];
   population_fractions: number[];
@@ -74,10 +31,49 @@ export interface Parameters {
   hospitalization_delay: number;
   fraction_dead: number[];
   death_delay: number;
-  mitigations: MitigationParams;
   p_test_sympto: number;
   test_sensitivity: number;
   p_test_forward: number;
+
+  vaccine_enabled: boolean;
+  vaccine_editable: boolean;
+  vaccine_doses: number;
+  vaccine_start: number;
+  vaccine_dose2_delay: number;
+  vaccine_p_get_2_doses: number;
+  vaccine_administration_rate: number;
+  vaccine_doses_available: number;
+  vaccine_ramp_up: number;
+  vaccine_ve_s: number;
+  vaccine_ve_i: number;
+  vaccine_ve_p: number;
+  vaccine_ve_2s: number;
+  vaccine_ve_2i: number;
+  vaccine_ve_2p: number;
+
+  antivirals_enabled: boolean;
+  antivirals_editable: boolean;
+  antivirals_fraction_adhere: number;
+  antivirals_fraction_diagnosed_prescribed_inpatient: number;
+  antivirals_fraction_diagnosed_prescribed_outpatient: number;
+  antivirals_fraction_seek_care: number;
+  antivirals_ave_i: number;
+  antivirals_ave_p_hosp: number;
+  antivirals_ave_p_death: number;
+
+  community_enabled: boolean;
+  community_editable: boolean;
+  community_start: number;
+  community_duration: number;
+  community_effectiveness: number[];
+
+  ttiq_enabled: boolean;
+  ttiq_editable: boolean;
+  ttiq_p_id_infectious: number;
+  ttiq_p_infectious_isolates: number;
+  ttiq_isolation_reduction: number;
+  ttiq_p_contact_trace: number;
+  ttiq_p_traced_quarantines: number;
 }
 
 export type MitigationLabel = "Unmitigated" | "Mitigated";
@@ -100,7 +96,7 @@ export interface ModelOutputExport {
 }
 
 export interface WasmModel {
-  run: (days: number) => ModelOutputExport;
+  run: () => ModelOutputExport;
   free: () => void;
 }
 
@@ -131,70 +127,53 @@ function loadWasm(): Promise<WasmModule> {
 
 export interface ParamsStore {
   params: Parameters;
-  days: Ref<number>;
   ready: Ref<boolean>;
+  reset: () => void;
 }
 
 const ParamsKey: InjectionKey<ParamsStore> = Symbol("params");
 
-export function createParamsStore(): ParamsStore {
-  // Seed with a reasonable placeholder so reactive bindings don't crash
-  // before the wasm module finishes loading. Replaced with wasm defaults
-  // once loaded.
-  const params = reactive<Parameters>({
-    n: 2,
-    population: 330_000_000,
-    population_fraction_labels: ["Children", "Adults"],
-    population_fractions: [0.25, 0.75],
-    contact_matrix: [18, 9, 3, 12],
-    initial_infections: 1000,
-    fraction_initial_immune: 0,
-    r0: 1.5,
-    latent_period: 1,
-    infectious_period: 2.5,
-    fraction_symptomatic: [0.5, 0.5],
-    fraction_hospitalized: [0.01, 0.1],
-    hospitalization_delay: 7,
-    fraction_dead: [0.0005, 0.005],
-    death_delay: 10,
-    mitigations: {
-      vaccine: {
-        enabled: true, editable: true, doses: 1, start: 50, dose2_delay: 30,
-        p_get_2_doses: 0.9, administration_rate: 1_500_000,
-        doses_available: 40_000_000, ramp_up: 14,
-        ve_s: 0.4, ve_i: 0, ve_p: 0.5, ve_2s: 0.6, ve_2i: 0, ve_2p: 0.75,
-      },
-      antivirals: {
-        enabled: false, editable: true,
-        fraction_adhere: 0.5, fraction_diagnosed_prescribed_inpatient: 1,
-        fraction_diagnosed_prescribed_outpatient: 0.4, fraction_seek_care: 0.5,
-        ave_i: 0.3, ave_p_hosp: 0.2, ave_p_death: 0.1,
-      },
-      community: {
-        enabled: false, editable: true, start: 60, duration: 20,
-        effectiveness: [0.5, -0.1, -0.1, 0],
-      },
-      ttiq: {
-        enabled: false, editable: true,
-        p_id_infectious: 0.15, p_infectious_isolates: 0.75,
-        isolation_reduction: 0.5, p_contact_trace: 0.25, p_traced_quarantines: 0.75,
-      },
-    },
-    p_test_sympto: 0,
-    test_sensitivity: 0.9,
-    p_test_forward: 0.9,
-  });
+// Build-time snapshot of model/default-params.toml (the same file the wasm
+// crate embeds via include_str!). Used to seed reactive state before wasm
+// loads; overwritten with `get_default_parameters()` on ready.
+const TOML_DEFAULTS = parse(rawDefaults) as unknown as Parameters;
 
-  const days = ref(200);
+function seedParameters(): Parameters {
+  return structuredClone(TOML_DEFAULTS);
+}
+
+// Keys omitted from URL sync: structural/UI-only fields the user never edits.
+const URL_IGNORE: (keyof Parameters)[] = [
+  "n",
+  "population_fraction_labels",
+  "vaccine_editable",
+  "antivirals_editable",
+  "community_editable",
+  "ttiq_editable",
+];
+
+export function createParamsStore(): ParamsStore {
+  const params = reactive<Parameters>(seedParameters());
   const ready = ref(false);
+  // shallowRef: defaults are an immutable snapshot. A plain ref() would
+  // deep-proxy the object, and useUrlParams' structuredClone chokes on the
+  // reactive-wrapped nested arrays.
+  const wasmDefaults = shallowRef<Parameters | null>(null);
+
+  const { hydrate, reset: resetUrl } = useUrlParams(
+    params,
+    () => wasmDefaults.value ?? undefined,
+    { ignore: URL_IGNORE },
+  );
 
   loadWasm().then((mod) => {
-    const defaults = mod.get_default_parameters();
-    Object.assign(params, defaults);
+    wasmDefaults.value = mod.get_default_parameters();
+    Object.assign(params, wasmDefaults.value);
+    hydrate();
     ready.value = true;
   });
 
-  return { params, days, ready };
+  return { params, ready, reset: () => resetUrl() };
 }
 
 export function provideParams(): ParamsStore {

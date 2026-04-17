@@ -181,15 +181,15 @@ const subtitle = computed(
       <aside class="detection__controls">
         <h3>Detection</h3>
         <ParamField
-          path="scenario.p_test_sympto"
+          path="p_test_sympto"
           v-model="pTestSymptoPct"
         />
         <ParamField
-          path="scenario.test_sensitivity"
+          path="test_sensitivity"
           v-model="params.test_sensitivity"
         />
         <ParamField
-          path="scenario.p_test_forward"
+          path="p_test_forward"
           v-model="params.p_test_forward"
         />
       </aside>

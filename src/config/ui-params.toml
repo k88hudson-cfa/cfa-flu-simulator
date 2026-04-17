@@ -1,6 +1,5 @@
 # UI parameter config — labels, tooltips, and input ranges for the form.
-# Keyed by dotted paths into the wasm `Parameters` schema. Min/max/step
-# values mirror the reference React UI (.references/dynode-web/src/).
+# Keyed by the flat `Parameters` field names (e.g. `vaccine_ve_s`).
 #
 # Default values here are informational/mirror-only. The runtime default
 # comes from `get_default_parameters()` (which loads model/default-params.toml).
@@ -13,8 +12,7 @@
 
 # ---- SCENARIO ---------------------------------------------------------------
 
-# Synthetic: duration passed to SEIRModelUnified.run(days); not part of Parameters.
-[scenario.days]
+[days]
 section = "scenario"
 label = "Days"
 min = 1
@@ -24,7 +22,7 @@ default = 200
 type = "integer"
 slider = true
 
-[scenario.population]
+[population]
 section = "scenario"
 label = "Population size"
 tooltip = "The total number of people in the simulation"
@@ -33,7 +31,7 @@ step = 1_000_000
 default = 330_000_000
 type = "integer"
 
-[scenario.initial_infections]
+[initial_infections]
 section = "scenario"
 label = "Initial infections"
 tooltip = "Number of people infected at the first day of the outbreak"
@@ -42,7 +40,7 @@ step = 100
 default = 1000
 type = "float"
 
-[scenario.fraction_initial_immune]
+[fraction_initial_immune]
 section = "scenario"
 label = "Prior immunity (%)"
 tooltip = "Proportion of the population that is immune (i.e., cannot be infected during the outbreak) at the start of the simulation"
@@ -53,7 +51,7 @@ default = 0.0
 type = "percent"
 slider = true
 
-[scenario.r0]
+[r0]
 section = "scenario"
 label = "Basic reproduction number"
 tooltip = "Average number of people infected by a single infectious person."
@@ -64,7 +62,7 @@ default = 1.5
 type = "float"
 slider = true
 
-[scenario.latent_period]
+[latent_period]
 section = "scenario"
 label = "Latent period"
 tooltip = "Mean delay from time of exposure to onset of infectiousness, in days"
@@ -75,7 +73,7 @@ default = 1.0
 type = "float"
 slider = true
 
-[scenario.infectious_period]
+[infectious_period]
 section = "scenario"
 label = "Infectious period"
 tooltip = "Mean duration of infectious period, in days"
@@ -86,7 +84,7 @@ default = 2.5
 type = "float"
 slider = true
 
-[scenario.fraction_symptomatic]
+[fraction_symptomatic]
 section = "scenario"
 label = "Symptomatic fraction"
 tooltip = "Proportion of infections that would result in symptoms in the absence of mitigations"
@@ -98,7 +96,7 @@ type = "percent"
 slider = true
 per_group = true
 
-[scenario.fraction_hospitalized]
+[fraction_hospitalized]
 section = "scenario"
 label = "Infection-hospitalization ratio"
 tooltip = "Proportion of infections that would result in hospitalization in the absence of mitigations"
@@ -108,7 +106,7 @@ step = 0.01
 type = "float"
 per_group = true
 
-[scenario.fraction_dead]
+[fraction_dead]
 section = "scenario"
 label = "Infection-fatality ratio"
 tooltip = "Proportion of infections that would result in death in the absence of mitigations"
@@ -120,7 +118,7 @@ per_group = true
 
 # ---- DETECTION -------------------------------------------------------------
 
-[scenario.p_test_sympto]
+[p_test_sympto]
 section = "detection"
 label = "Proportion of symptomatic infections tested (%)"
 min = 0
@@ -130,7 +128,7 @@ default = 0.1
 type = "float"
 slider = true
 
-[scenario.test_sensitivity]
+[test_sensitivity]
 section = "detection"
 label = "Test sensitivity"
 tooltip = "Proportion of tested infections that are correctly identified as infected by the test"
@@ -141,7 +139,7 @@ default = 0.90
 type = "percent"
 slider = true
 
-[scenario.p_test_forward]
+[p_test_forward]
 section = "detection"
 label = "Probability a positive test is forwarded to public health"
 tooltip = "Proportion of positive tests that are forwarded to a public health laboratory, resulting in a detection"
@@ -154,13 +152,13 @@ slider = true
 
 # ---- VACCINE ---------------------------------------------------------------
 
-[mitigations.vaccine.doses]
+[vaccine_doses]
 section = "vaccine"
 label = "Vaccine type"
 type = "select"
 options = [{ value = 1, label = "One dose" }, { value = 2, label = "Two doses" }]
 
-[mitigations.vaccine.start]
+[vaccine_start]
 section = "vaccine"
 label = "Vaccination start"
 tooltip = "Start day of the vaccination campaign"
@@ -171,7 +169,7 @@ default = 50
 type = "integer"
 slider = true
 
-[mitigations.vaccine.doses_available]
+[vaccine_doses_available]
 section = "vaccine"
 label = "Vaccine doses available"
 tooltip = "Total number of doses available for vaccination. Determines the duration of the vaccine campaign."
@@ -181,7 +179,7 @@ default = 40_000_000
 type = "integer"
 slider = true
 
-[mitigations.vaccine.administration_rate]
+[vaccine_administration_rate]
 section = "vaccine"
 label = "Vaccine administration rate"
 tooltip = "Maximum possible number of doses administered per day"
@@ -192,7 +190,7 @@ default = 1_500_000
 type = "integer"
 slider = true
 
-[mitigations.vaccine.dose2_delay]
+[vaccine_dose2_delay]
 section = "vaccine"
 show_when_doses_2 = true
 label = "Delay between doses"
@@ -204,7 +202,7 @@ default = 30
 type = "integer"
 slider = true
 
-[mitigations.vaccine.p_get_2_doses]
+[vaccine_p_get_2_doses]
 section = "vaccine"
 show_when_doses_2 = true
 label = "Fraction of vaccinees who receive 2 doses"
@@ -216,7 +214,7 @@ default = 0.9
 type = "percent"
 slider = true
 
-[mitigations.vaccine.ve_s]
+[vaccine_ve_s]
 section = "vaccine"
 label = "Effectiveness for susceptibility"
 tooltip = "Proportion of potential infections among the vaccine-protected that are averted"
@@ -227,7 +225,7 @@ default = 0.40
 type = "percent"
 slider = true
 
-[mitigations.vaccine.ve_i]
+[vaccine_ve_i]
 section = "vaccine"
 label = "Effectiveness for onward transmission"
 tooltip = "Proportion of onward transmissions among the vaccine-protected that are averted"
@@ -238,7 +236,7 @@ default = 0.0
 type = "percent"
 slider = true
 
-[mitigations.vaccine.ve_p]
+[vaccine_ve_p]
 section = "vaccine"
 label = "Effectiveness for symptomatic disease"
 tooltip = "Proportion of symptomatic disease among the vaccine-protected that is averted"
@@ -249,7 +247,7 @@ default = 0.5
 type = "percent"
 slider = true
 
-[mitigations.vaccine.ve_2s]
+[vaccine_ve_2s]
 section = "vaccine"
 show_when_doses_2 = true
 label = "Effectiveness for susceptibility (2nd dose)"
@@ -261,7 +259,7 @@ default = 0.60
 type = "percent"
 slider = true
 
-[mitigations.vaccine.ve_2i]
+[vaccine_ve_2i]
 section = "vaccine"
 show_when_doses_2 = true
 label = "Effectiveness for onward transmission (2nd dose)"
@@ -273,7 +271,7 @@ default = 0.0
 type = "percent"
 slider = true
 
-[mitigations.vaccine.ve_2p]
+[vaccine_ve_2p]
 section = "vaccine"
 show_when_doses_2 = true
 label = "Effectiveness for symptomatic disease (2nd dose)"
@@ -285,7 +283,7 @@ default = 0.75
 type = "percent"
 slider = true
 
-[mitigations.vaccine.ramp_up]
+[vaccine_ramp_up]
 section = "vaccine"
 label = "Delay from dose to protection (days)"
 tooltip = "Time from vaccination to achieving protection from vaccination. Individuals infected before the delay is complete have no protection from vaccination."
@@ -298,7 +296,7 @@ slider = true
 
 # ---- ANTIVIRALS ------------------------------------------------------------
 
-[mitigations.antivirals.ave_i]
+[antivirals_ave_i]
 section = "antivirals"
 label = "Effectiveness for onward transmission"
 tooltip = "Proportional reduction in onward transmission among infected individuals who receive outpatient antivirals and adhere to the regimen"
@@ -309,7 +307,7 @@ default = 0.30
 type = "percent"
 slider = true
 
-[mitigations.antivirals.ave_p_hosp]
+[antivirals_ave_p_hosp]
 section = "antivirals"
 label = "Effectiveness for hospitalization"
 tooltip = "Of symptomatic infections who receive outpatient antivirals and adhere to the regimen, the proportion that avert hospitalization"
@@ -320,7 +318,7 @@ default = 0.20
 type = "percent"
 slider = true
 
-[mitigations.antivirals.ave_p_death]
+[antivirals_ave_p_death]
 section = "antivirals"
 label = "Effectiveness for death"
 tooltip = "Of hospitalized infections that receive inpatient antivirals, the proportion that avert death"
@@ -331,7 +329,7 @@ default = 0.10
 type = "percent"
 slider = true
 
-[mitigations.antivirals.fraction_seek_care]
+[antivirals_fraction_seek_care]
 section = "antivirals"
 label = "Fraction of cases that seek care"
 tooltip = "Proportion of symptomatic infections that seek care"
@@ -342,7 +340,7 @@ default = 0.50
 type = "percent"
 slider = true
 
-[mitigations.antivirals.fraction_diagnosed_prescribed_outpatient]
+[antivirals_fraction_diagnosed_prescribed_outpatient]
 section = "antivirals"
 label = "Fraction of care-seeking outpatient cases that receive antivirals"
 tooltip = "Proportion of care-seeking infections that are prescribed outpatient antivirals"
@@ -353,7 +351,7 @@ default = 0.40
 type = "percent"
 slider = true
 
-[mitigations.antivirals.fraction_adhere]
+[antivirals_fraction_adhere]
 section = "antivirals"
 label = "Fraction of individuals that adhere to prescribed outpatient antiviral regimen"
 tooltip = "Proportion of individuals prescribed outpatient antivirals who take their full course of medication"
@@ -364,7 +362,7 @@ default = 0.50
 type = "percent"
 slider = true
 
-[mitigations.antivirals.fraction_diagnosed_prescribed_inpatient]
+[antivirals_fraction_diagnosed_prescribed_inpatient]
 section = "antivirals"
 label = "Fraction of hospitalized cases that receive antivirals"
 tooltip = "Proportion of hospitalized infections that are prescribed inpatient antivirals"
@@ -377,7 +375,7 @@ slider = true
 
 # ---- COMMUNITY -------------------------------------------------------------
 
-[mitigations.community.start]
+[community_start]
 section = "community"
 label = "Start day"
 tooltip = "First day that the intervention has its effect"
@@ -388,7 +386,7 @@ default = 60
 type = "integer"
 slider = true
 
-[mitigations.community.duration]
+[community_duration]
 section = "community"
 label = "Duration (days)"
 tooltip = "Time over which the intervention has its effect"
@@ -399,7 +397,7 @@ default = 20
 type = "integer"
 slider = true
 
-[mitigations.community.effectiveness]
+[community_effectiveness]
 section = "community"
 label = "Effectiveness"
 tooltip = "Proportional reduction in transmission due to the mitigation, where negative values mean an increase in transmission. Effects are symmetric (e.g., child-to-adult and adult-to-child are changed equally)."
@@ -411,7 +409,7 @@ matrix = true
 
 # ---- TTIQ ------------------------------------------------------------------
 
-[mitigations.ttiq.p_id_infectious]
+[ttiq_p_id_infectious]
 section = "ttiq"
 label = "Probability an infectious person becomes aware of their own infection"
 min = 0
@@ -421,7 +419,7 @@ default = 0.15
 type = "percent"
 slider = true
 
-[mitigations.ttiq.p_infectious_isolates]
+[ttiq_p_infectious_isolates]
 section = "ttiq"
 label = "Probability of isolation"
 tooltip = "Probability an aware, infectious person will isolate"
@@ -432,7 +430,7 @@ default = 0.75
 type = "percent"
 slider = true
 
-[mitigations.ttiq.isolation_reduction]
+[ttiq_isolation_reduction]
 section = "ttiq"
 label = "Isolation effectiveness"
 tooltip = "Proportional reduction in duration of infectious period due to isolation"
@@ -443,7 +441,7 @@ default = 0.50
 type = "percent"
 slider = true
 
-[mitigations.ttiq.p_contact_trace]
+[ttiq_p_contact_trace]
 section = "ttiq"
 label = "Probability of contact tracing"
 tooltip = "Probability contact tracing will identify an exposed person"
@@ -454,7 +452,7 @@ default = 0.25
 type = "percent"
 slider = true
 
-[mitigations.ttiq.p_traced_quarantines]
+[ttiq_p_traced_quarantines]
 section = "ttiq"
 label = "Contact tracing effectiveness"
 tooltip = "Probability a traced contact will quarantine and never transmit"
