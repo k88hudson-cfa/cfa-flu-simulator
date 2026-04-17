@@ -17,12 +17,15 @@ interface TableBlock {
 type Row = [string, string];
 
 const MARGIN = 40;
-const GAP_AFTER_CHART = 18;
 const GAP_AFTER_TABLE = 20;
 // Raster charts at 300 DPI relative to their placed size in the PDF.
 // PDF units are points (72/inch), so 300 DPI = 300/72 px/pt.
 const DPI = 300;
 const PX_PER_PT = DPI / 72;
+// One chart per row, full content width, uniform height.
+const CHART_GAP_Y = 20;
+const CHART_HEADING_H = 16;
+const CHART_H_PT = 300;
 const PARAM_TABLE_HEAD: string[] = ["Parameter", "Value"];
 
 export async function generateReport(
@@ -95,20 +98,20 @@ async function drawChart(
   const rect = block.svg.getBoundingClientRect();
   if (rect.width === 0 || rect.height === 0) return y;
 
-  const scale = Math.min(1, contentWidth / rect.width);
-  const drawW = rect.width * scale;
-  const drawH = rect.height * scale;
-  const headingH = block.heading ? 16 : 0;
+  const drawW = contentWidth;
+  const drawH = CHART_H_PT;
+  const rowH = CHART_HEADING_H + drawH;
 
-  if (y + headingH + drawH > pageHeight - MARGIN) {
+  if (y + rowH > pageHeight - MARGIN) {
     pdf.addPage();
     y = MARGIN;
   }
 
+  let chartY = y;
   if (block.heading) {
     pdf.setFont("helvetica", "bold").setFontSize(12);
     pdf.text(block.heading, MARGIN, y + 10);
-    y += headingH;
+    chartY += CHART_HEADING_H;
   }
 
   const pxW = Math.round(drawW * PX_PER_PT);
@@ -120,9 +123,9 @@ async function drawChart(
     pxW,
     pxH,
   );
-  pdf.addImage(pngDataUrl, "PNG", MARGIN, y, drawW, drawH);
+  pdf.addImage(pngDataUrl, "PNG", MARGIN, chartY, drawW, drawH);
 
-  return y + drawH + GAP_AFTER_CHART;
+  return chartY + drawH + CHART_GAP_Y;
 }
 
 // Serialize an SVG, load it into an <img>, and paint to a canvas sized for
@@ -138,8 +141,12 @@ async function svgToPngDataUrl(
   const clone = svg.cloneNode(true) as SVGSVGElement;
   inlineComputedStyles(svg, clone);
   clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  clone.setAttribute("width", String(srcWidth));
-  clone.setAttribute("height", String(srcHeight));
+  // viewBox preserves the chart's internal layout coordinates; the canvas
+  // scales uniformly to fit (meet) so text and marks aren't distorted.
+  clone.setAttribute("viewBox", `0 0 ${srcWidth} ${srcHeight}`);
+  clone.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  clone.setAttribute("width", String(targetPxWidth));
+  clone.setAttribute("height", String(targetPxHeight));
 
   const source = new XMLSerializer().serializeToString(clone);
   const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
