@@ -20,7 +20,7 @@ slider = true
 [scenario.population]
 label = "Population size"
 tooltip = "The total number of people in the simulation"
-min = 0
+min = 1
 step = 1_000_000
 default = 330_000_000
 type = "integer"
