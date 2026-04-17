@@ -186,8 +186,7 @@ fn vaccine_rates_by_dose(
     let t_end2 = t_start2 + duration;
 
     let rate1 = max_rate / (1.0 + p_get_2_doses);
-    let rate2 = rate1 * p_get_2_doses;
-    float_eq::assert_float_eq!(rate1 + rate2, max_rate, abs <= 1e-10);
+    let rate2 = max_rate - rate1;
 
     (
         if t_start1 <= t && t < t_end1 { rate1 } else { 0.0 },
