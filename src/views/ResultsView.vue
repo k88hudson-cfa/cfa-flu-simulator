@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import type { Series, AreaSection } from "cfasim-ui/charts";
+import { Button } from "cfasim-ui/components";
 import ChartPanel from "../components/ChartPanel.vue";
 import OnThisPage from "../components/OnThisPage.vue";
 import SummaryView from "./SummaryView.vue";
@@ -8,9 +9,24 @@ import DetectionSection from "../sections/DetectionSection.vue";
 import { useParams, type ModelOutputExport, type OutputItemGrouped, type OutputTypeLabel } from "../composables/useParams";
 import { useModelRun } from "../composables/useModelRun";
 import { pickScale, scale, type ChartData } from "../utils/chartScale";
+import { generateReport } from "../utils/pdfReport";
 
 const { params } = useParams();
 const { results, running, error } = useModelRun();
+
+const downloading = ref(false);
+async function handleDownload() {
+  const container = document.getElementById("results-root");
+  if (!container || downloading.value) return;
+  downloading.value = true;
+  try {
+    await generateReport(container, params);
+  } catch (e) {
+    console.error("Report generation failed", e);
+  } finally {
+    downloading.value = false;
+  }
+}
 
 // --- series extraction helpers ---------------------------------------------
 
@@ -289,7 +305,17 @@ const onThisPageGroups = computed(() => [
       </template>
     </div>
     <aside class="results-layout__rail">
-      <OnThisPage :groups="onThisPageGroups" />
+      <div class="rail__sticky">
+        <OnThisPage :groups="onThisPageGroups" />
+        <Button
+          class="rail__download"
+          variant="secondary"
+          :disabled="downloading"
+          @click="handleDownload"
+        >
+          {{ downloading ? "Generating…" : "Download report" }}
+        </Button>
+      </div>
     </aside>
   </div>
 </template>
@@ -307,6 +333,18 @@ const onThisPageGroups = computed(() => [
   display: none;
   padding: 1rem 1.5rem 1rem 0;
   align-self: stretch;
+}
+.rail__sticky {
+  position: sticky;
+  top: 1rem;
+}
+.rail__download {
+  margin-top: 1rem;
+  margin-left: 1rem;
+}
+/* OnThisPage is sticky on its own; inside the sticky wrapper that's redundant. */
+.rail__sticky :deep(.otp) {
+  position: static;
 }
 @container results (max-width: 819px) {
   .results-layout {

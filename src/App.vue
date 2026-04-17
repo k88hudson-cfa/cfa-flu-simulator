@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { Button, SidebarLayout } from "cfasim-ui/components";
 import { provideParams } from "./composables/useParams";
 import ScenarioSection from "./sections/ScenarioSection.vue";
@@ -8,23 +7,8 @@ import AntiviralsSection from "./sections/AntiviralsSection.vue";
 import CommunitySection from "./sections/CommunitySection.vue";
 import TTIQSection from "./sections/TTIQSection.vue";
 import ResultsView from "./views/ResultsView.vue";
-import { generateReport } from "./utils/pdfReport";
 
-const { ready, params, reset } = provideParams();
-const downloading = ref(false);
-
-async function handleDownload() {
-  const container = document.getElementById("results-root");
-  if (!container || downloading.value) return;
-  downloading.value = true;
-  try {
-    await generateReport(container, params);
-  } catch (e) {
-    console.error("Report generation failed", e);
-  } finally {
-    downloading.value = false;
-  }
-}
+const { ready, reset } = provideParams();
 </script>
 
 <template>
@@ -33,13 +17,6 @@ async function handleDownload() {
       <template v-if="ready">
         <div class="toolbar">
           <Button variant="secondary" @click="reset">Reset</Button>
-          <Button
-            variant="secondary"
-            :disabled="downloading"
-            @click="handleDownload"
-          >
-            {{ downloading ? "Generating…" : "Download report" }}
-          </Button>
         </div>
         <h2>Scenario</h2>
         <ScenarioSection />
