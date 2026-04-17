@@ -9,6 +9,8 @@ export interface SelectOption {
 }
 
 export interface FieldConfig {
+  section?: string;
+  show_when_doses_2?: boolean;
   label: string;
   tooltip?: string;
   min?: number;
@@ -53,4 +55,9 @@ export function getField(path: string): FieldConfig {
 
 export function allFields(): Record<string, FieldConfig> {
   return config;
+}
+
+// Fields belonging to a section, in TOML declaration order.
+export function fieldsInSection(section: string): [string, FieldConfig][] {
+  return Object.entries(config).filter(([, cfg]) => cfg.section === section);
 }

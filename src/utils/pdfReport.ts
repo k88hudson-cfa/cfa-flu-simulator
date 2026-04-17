@@ -1,13 +1,7 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { getField, type FieldConfig } from "../config/uiConfig";
-import type {
-  AntiviralsParams,
-  CommunityMitigationParams,
-  Parameters,
-  TTIQParams,
-  VaccineParams,
-} from "../composables/useParams";
+import { fieldsInSection, type FieldConfig } from "../config/uiConfig";
+import type { Parameters } from "../composables/useParams";
 
 interface ChartBlock {
   heading: string;
@@ -312,162 +306,138 @@ function collectSummaryTables(container: HTMLElement): TableBlock[] {
 }
 
 // --- parameter table builders --------------------------------------------
+//
+// Drives its content entirely from ui-params.toml — adding a new field
+// there (with `section = "..."`) automatically adds it to the export.
+
+interface ReportSection {
+  id: string;
+  title: string;
+  // If present and false, the whole sub-table is skipped (used for disabled
+  // mitigations).
+  isEnabled?: (p: Parameters) => boolean;
+}
+
+const REPORT_SECTIONS: ReportSection[] = [
+  { id: "scenario", title: "Scenario" },
+  { id: "detection", title: "Detection" },
+  {
+    id: "vaccine",
+    title: "Vaccine",
+    isEnabled: (p) => p.mitigations.vaccine.enabled,
+  },
+  {
+    id: "antivirals",
+    title: "Antivirals",
+    isEnabled: (p) => p.mitigations.antivirals.enabled,
+  },
+  {
+    id: "community",
+    title: "Community mitigation",
+    isEnabled: (p) => p.mitigations.community.enabled,
+  },
+  {
+    id: "ttiq",
+    title: "TTIQ",
+    isEnabled: (p) => p.mitigations.ttiq.enabled,
+  },
+];
 
 const intFmt = new Intl.NumberFormat("en-US");
 
-function fmtValue(cfg: FieldConfig, value: number): string {
+function fmtScalar(cfg: FieldConfig, value: number): string {
   if (cfg.type === "percent") return `${(value * 100).toFixed(1)}%`;
   if (cfg.type === "integer") return intFmt.format(value);
   if (cfg.type === "select") {
     const opt = cfg.options?.find((o) => o.value === value);
     return opt?.label ?? String(value);
   }
-  // float
   return Number.isInteger(value) ? String(value) : value.toFixed(3);
 }
 
-function row(path: string, value: number): Row {
-  const cfg = getField(path);
-  return [cfg.label, fmtValue(cfg, value)];
+function fmtGroup(
+  cfg: FieldConfig,
+  values: number[],
+  groupLabels: string[],
+): string {
+  return values
+    .map((v, i) => `${groupLabels[i] ?? `G${i}`}: ${fmtScalar(cfg, v)}`)
+    .join(", ");
 }
 
-function groupRow(path: string, values: number[], groupLabels: string[]): Row {
-  const cfg = getField(path);
-  const parts = values.map(
-    (v, i) => `${groupLabels[i] ?? `G${i}`}: ${fmtValue(cfg, v)}`,
-  );
-  return [cfg.label, parts.join(", ")];
-}
-
-function matrixRow(path: string, values: number[], groupLabels: string[]): Row {
-  const cfg = getField(path);
+function fmtMatrix(
+  cfg: FieldConfig,
+  values: number[],
+  groupLabels: string[],
+): string {
   const n = groupLabels.length;
   const parts: string[] = [];
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
       parts.push(
-        `${groupLabels[i]} → ${groupLabels[j]}: ${fmtValue(cfg, values[i * n + j] ?? 0)}`,
+        `${groupLabels[i]} → ${groupLabels[j]}: ${fmtScalar(cfg, values[i * n + j] ?? 0)}`,
       );
     }
   }
-  return [cfg.label, parts.join("; ")];
+  return parts.join("; ");
 }
 
-function scenarioRows(params: Parameters, days: number): Row[] {
-  const grp = params.population_fraction_labels;
-  return [
-    row("scenario.days", days),
-    row("scenario.population", params.population),
-    row("scenario.initial_infections", params.initial_infections),
-    row("scenario.fraction_initial_immune", params.fraction_initial_immune),
-    row("scenario.r0", params.r0),
-    row("scenario.latent_period", params.latent_period),
-    row("scenario.infectious_period", params.infectious_period),
-    groupRow("scenario.fraction_symptomatic", params.fraction_symptomatic, grp),
-    groupRow("scenario.fraction_hospitalized", params.fraction_hospitalized, grp),
-    groupRow("scenario.fraction_dead", params.fraction_dead, grp),
-  ];
+// The TOML uses `scenario.*` as a UI grouping for fields that live flat on
+// Parameters (scenario.population → params.population). Mitigation paths
+// mirror the struct exactly. `scenario.days` is synthetic (days is its own
+// ref, not part of Parameters).
+function resolveValue(
+  params: Parameters,
+  days: number,
+  path: string,
+): unknown {
+  if (path === "scenario.days") return days;
+  const parts = path.split(".");
+  if (parts[0] === "scenario" && parts.length === 2) {
+    return (params as unknown as Record<string, unknown>)[parts[1]];
+  }
+  let cur: unknown = params;
+  for (const p of parts) {
+    cur = (cur as Record<string, unknown> | undefined)?.[p];
+  }
+  return cur;
 }
 
-function detectionRows(params: Parameters): Row[] {
-  return [
-    row("scenario.p_test_sympto", params.p_test_sympto),
-    row("scenario.test_sensitivity", params.test_sensitivity),
-    row("scenario.p_test_forward", params.p_test_forward),
-  ];
+function isVisible(cfg: FieldConfig, params: Parameters): boolean {
+  if (cfg.show_when_doses_2 && params.mitigations.vaccine.doses !== 2) {
+    return false;
+  }
+  return true;
 }
 
-function vaccineRows(v: VaccineParams): Row[] {
-  const twoDose = v.doses === 2;
-  return [
-    row("mitigations.vaccine.doses", v.doses),
-    row("mitigations.vaccine.start", v.start),
-    row("mitigations.vaccine.ramp_up", v.ramp_up),
-    row("mitigations.vaccine.doses_available", v.doses_available),
-    row("mitigations.vaccine.administration_rate", v.administration_rate),
-    ...(twoDose
-      ? [
-          row("mitigations.vaccine.dose2_delay", v.dose2_delay),
-          row("mitigations.vaccine.p_get_2_doses", v.p_get_2_doses),
-        ]
-      : []),
-    row("mitigations.vaccine.ve_s", v.ve_s),
-    row("mitigations.vaccine.ve_i", v.ve_i),
-    row("mitigations.vaccine.ve_p", v.ve_p),
-    ...(twoDose
-      ? [
-          row("mitigations.vaccine.ve_2s", v.ve_2s),
-          row("mitigations.vaccine.ve_2i", v.ve_2i),
-          row("mitigations.vaccine.ve_2p", v.ve_2p),
-        ]
-      : []),
-  ];
-}
-
-function antiviralsRows(a: AntiviralsParams): Row[] {
-  return [
-    row("mitigations.antivirals.fraction_seek_care", a.fraction_seek_care),
-    row(
-      "mitigations.antivirals.fraction_diagnosed_prescribed_outpatient",
-      a.fraction_diagnosed_prescribed_outpatient,
-    ),
-    row("mitigations.antivirals.fraction_adhere", a.fraction_adhere),
-    row(
-      "mitigations.antivirals.fraction_diagnosed_prescribed_inpatient",
-      a.fraction_diagnosed_prescribed_inpatient,
-    ),
-    row("mitigations.antivirals.ave_i", a.ave_i),
-    row("mitigations.antivirals.ave_p_hosp", a.ave_p_hosp),
-    row("mitigations.antivirals.ave_p_death", a.ave_p_death),
-  ];
-}
-
-function communityRows(
-  c: CommunityMitigationParams,
+function buildRow(
+  path: string,
+  cfg: FieldConfig,
+  value: unknown,
   groupLabels: string[],
-): Row[] {
-  return [
-    row("mitigations.community.start", c.start),
-    row("mitigations.community.duration", c.duration),
-    matrixRow(
-      "mitigations.community.effectiveness",
-      c.effectiveness,
-      groupLabels,
-    ),
-  ];
-}
-
-function ttiqRows(t: TTIQParams): Row[] {
-  return [
-    row("mitigations.ttiq.p_id_infectious", t.p_id_infectious),
-    row("mitigations.ttiq.p_infectious_isolates", t.p_infectious_isolates),
-    row("mitigations.ttiq.isolation_reduction", t.isolation_reduction),
-    row("mitigations.ttiq.p_contact_trace", t.p_contact_trace),
-    row("mitigations.ttiq.p_traced_quarantines", t.p_traced_quarantines),
-  ];
+): Row {
+  if (cfg.matrix && Array.isArray(value)) {
+    return [cfg.label, fmtMatrix(cfg, value as number[], groupLabels)];
+  }
+  if (cfg.per_group && Array.isArray(value)) {
+    return [cfg.label, fmtGroup(cfg, value as number[], groupLabels)];
+  }
+  return [cfg.label, fmtScalar(cfg, value as number)];
 }
 
 function buildParamTables(params: Parameters, days: number): TableBlock[] {
-  const block = (title: string, rows: Row[]): TableBlock => ({
-    title,
-    head: PARAM_TABLE_HEAD,
-    body: rows,
-  });
-  const tables: TableBlock[] = [
-    block("Scenario", scenarioRows(params, days)),
-    block("Detection", detectionRows(params)),
-  ];
-  const m = params.mitigations;
-  if (m.vaccine.enabled) tables.push(block("Vaccine", vaccineRows(m.vaccine)));
-  if (m.antivirals.enabled)
-    tables.push(block("Antivirals", antiviralsRows(m.antivirals)));
-  if (m.community.enabled)
-    tables.push(
-      block(
-        "Community mitigation",
-        communityRows(m.community, params.population_fraction_labels),
-      ),
-    );
-  if (m.ttiq.enabled) tables.push(block("TTIQ", ttiqRows(m.ttiq)));
+  const groupLabels = params.population_fraction_labels;
+  const tables: TableBlock[] = [];
+  for (const section of REPORT_SECTIONS) {
+    if (section.isEnabled && !section.isEnabled(params)) continue;
+    const rows = fieldsInSection(section.id)
+      .filter(([, cfg]) => isVisible(cfg, params))
+      .map(([path, cfg]) =>
+        buildRow(path, cfg, resolveValue(params, days, path), groupLabels),
+      );
+    if (rows.length) {
+      tables.push({ title: section.title, head: PARAM_TABLE_HEAD, body: rows });
+    }
+  }
   return tables;
 }
