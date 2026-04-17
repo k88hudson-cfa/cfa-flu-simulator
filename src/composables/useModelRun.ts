@@ -69,6 +69,7 @@ export function useModelRun(): ModelRun {
     running.value = true;
     error.value = null;
     lastRunAt = performance.now();
+    let panicked = false;
     try {
       const mod = await loadWasm();
       paramsBuf = deepAssign(paramsBuf, params);
@@ -78,10 +79,20 @@ export function useModelRun(): ModelRun {
         // turned into a reactive proxy even if accessed through a ref().
         results.value = markRaw(model.run(days.value));
       } finally {
-        model.free();
+        // WASM panics abort instead of unwinding, so wasm-bindgen's
+        // borrow guard is never dropped — free() then throws a secondary
+        // "attempted to take ownership ... while borrowed" that masks the
+        // real panic. Swallow it and flag so we can point the user at the
+        // console, where console_error_panic_hook logged file:line.
+        try {
+          model.free();
+        } catch {
+          panicked = true;
+        }
       }
     } catch (e) {
-      error.value = e instanceof Error ? e.message : String(e);
+      const msg = e instanceof Error ? e.message : String(e);
+      error.value = panicked ? `${msg} (see browser console for full Rust panic)` : msg;
     } finally {
       running.value = false;
       if (rerunRequested) {
