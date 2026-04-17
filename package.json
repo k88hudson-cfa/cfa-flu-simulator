@@ -8,6 +8,8 @@
   },
   "dependencies": {
     "cfasim-ui": "^0.3.6",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.7",
     "smol-toml": "^1.6.1",
     "vue": "^3.5.30"
   },

@@ -210,7 +210,7 @@ const onThisPageGroups = computed(() => [
 
 <template>
   <div class="results-layout">
-    <div class="results">
+    <div class="results" id="results-root">
       <header class="results__header">
         <h1>{{ headerTitle }}</h1>
         <p class="results__subtitle">{{ subtitle }}</p>
