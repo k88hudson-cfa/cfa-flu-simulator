@@ -23,6 +23,7 @@ cfasim-model = "0.3.6"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.13"
+serde_json = "1.0"
 
 [profile.release]
 opt-level = "s"
